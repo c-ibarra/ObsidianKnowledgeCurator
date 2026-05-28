@@ -1,0 +1,26 @@
+# Prerequisites & Dependencies
+node_modules/
+.venv/
+env/
+__pycache__/
+*.pyc
+
+# Local Credentials & Secrets
+.env
+.env.local
+.env.*.local
+secrets.json
+credentials.json
+.token_cache
+
+# Ingestion Scraper Temporaries & Caches
+transcript_raw*
+transcript_clean.txt
+temp_note.md
+*.vtt
+*.srt
+.download_cache/
+
+# IDE and Vault Artifacts (Avoid pushing absolute system paths)
+.obsidian/
+.agent/skills/temp_*

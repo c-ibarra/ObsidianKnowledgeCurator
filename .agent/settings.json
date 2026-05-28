@@ -1,0 +1,9 @@
+{
+  "preferredModel": "Gemini 3.1 Pro",
+  "mcpServers": {},
+  "_notes": {
+    "obsidian": "No MCP server needed. The obsidian CLI (/usr/local/bin/obsidian) is used directly via run_command. Obsidian must be open and running for CLI commands to work.",
+    "vault": "Obsidian",
+    "vaultPath": "/Users/carlosibarra/Library/CloudStorage/OneDrive-Personal/Obsidian/"
+  }
+}
