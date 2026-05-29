@@ -25,6 +25,8 @@ temp_note.md
 # IDE and Vault Artifacts (Avoid pushing absolute system paths)
 .obsidian/
 .agent/skills/temp_*
+.gemini/
+.vscode/
 
 # Temporary Execution Workspace & Reports
 temp/

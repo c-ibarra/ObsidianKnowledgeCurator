@@ -269,3 +269,10 @@ El Master Plan incluye:
 - **Convenciones del vault**: seguir siempre las detectadas — no imponer nuevas
 - **Transcripts no disponibles**: indicarlo antes de continuar, no bloquear el proceso
 - **Execution Workspace (temp/ and report/)**: Exclusively use `temp/` for temporary execution files, drafts, and staging logs not belonging to the project, and `report/` for specialized technical reports or execution summaries. Both folders must be strictly excluded from Git via `.gitignore` and never committed to the repository.
+- **Paralelismo y Concurrencia (Rendimiento)**: Siempre que sea posible, ejecuta múltiples llamadas a herramientas de forma paralela (Tool Calling concurrente). Si necesitas buscar múltiples archivos, leer varias notas o consultar diferentes URLs, hazlo simultáneamente en lugar de uno por uno para reducir drásticamente el tiempo de ejecución.
+- **Entorno UV Local (Rendimiento)**: Para reducir latencia y evitar resoluciones dinámicas lentas de paquetes, prioriza usar el entorno UV local (`obsidianKnowledgeCurator`) llamando a los scripts a través de `uv run` directamente en el contexto del proyecto.
+- **No Polling Async Tasks (Eficiencia)**: Nunca uses `manage_task` con `Action="status"` para hacer polling continuo sobre comandos en segundo plano. Permite que el sistema te despierte reactivamente cuando el proceso asíncrono termine.
+- **Fronteras del Workspace (Seguridad)**: Restringe tus operaciones de lectura (`list_dir`, `view_file`) y escritura exclusivamente al workspace del proyecto. No intentes acceder a rutas del sistema protegidas o directorios ocultos globales de `~/.gemini` para evitar errores de permisos.
+- **Cero Verificaciones Redundantes (Eficiencia)**: No realices verificaciones previas con `list_dir` antes de crear un archivo nuevo; la herramienta `write_to_file` crea automáticamente los directorios padre requeridos.
+- **Enrutamiento de Documentación (Eficiencia)**: Enruta siempre las consultas sobre documentación de frameworks y librerías directamente a través del conector Context7 MCP, en lugar de realizar búsquedas web genéricas.
+
