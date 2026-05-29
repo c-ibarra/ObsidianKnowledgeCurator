@@ -2,6 +2,7 @@
 node_modules/
 .venv/
 env/
+obsidianKnowledgeCurator/
 __pycache__/
 *.pyc
 
@@ -24,3 +25,7 @@ temp_note.md
 # IDE and Vault Artifacts (Avoid pushing absolute system paths)
 .obsidian/
 .agent/skills/temp_*
+
+# Temporary Execution Workspace & Reports
+temp/
+report/

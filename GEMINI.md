@@ -268,3 +268,4 @@ El Master Plan incluye:
 - **Fuentes múltiples**: procesar en orden, una a la vez, reportando progreso
 - **Convenciones del vault**: seguir siempre las detectadas — no imponer nuevas
 - **Transcripts no disponibles**: indicarlo antes de continuar, no bloquear el proceso
+- **Execution Workspace (temp/ and report/)**: Exclusively use `temp/` for temporary execution files, drafts, and staging logs not belonging to the project, and `report/` for specialized technical reports or execution summaries. Both folders must be strictly excluded from Git via `.gitignore` and never committed to the repository.
