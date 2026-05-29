@@ -1,4 +1,7 @@
+![Obsidian Knowledge Curator Banner](docs/assets/curator_project_banner.png)
+
 # Obsidian Knowledge Curator: Autonomous Lifecycle Agent with Antigravity 2.0
+
 
 An enterprise-grade, modular AI agent infrastructure designed to autonomously ingest, synthesize, and curate multi-format knowledge streams directly into an Obsidian Personal Knowledge Management (PKM) graph. 
 
