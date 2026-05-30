@@ -3,6 +3,7 @@
 <p align="center">
   <img src="assets/images/curator_project_banner.png" alt="Curator Project Banner" width="100%">
 </p>
+
 ![Python](https://img.shields.io/badge/Python-3.11+-blue.svg)
 ![Gemini 3.1 Pro](https://img.shields.io/badge/AI-Gemini_3.1_Pro-orange.svg)
 ![Obsidian](https://img.shields.io/badge/Knowledge-Obsidian-purple.svg)
