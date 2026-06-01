@@ -101,6 +101,13 @@ A custom Python linter that runs against the vault to ensure graph integrity:
 - Detects isolated "orphan" notes.
 - Scans for the `> [!contradiction]` callout, which the agent injects when new sources conflict with existing wiki knowledge.
 
+### 4. Generic Notion Migration & Curation Pipeline (`curate_notion_import.py`)
+A parameterizable batch-migration and curation system that ingests imported Notion folder contents:
+- Dynamically maps sources using `--notion-dir`, `--target-kb`, and `--course-name` arguments.
+- Formats notes to strict zero-YAML Spanish conventions using the active agent context.
+- Compiles incremental PascalCase Wiki concept pages with dynamic bidirectional backlinks.
+- Automatically builds/updates dynamic Category Master Plan index tables.
+
 ---
 
 ## 🔒 Security & Sandboxing

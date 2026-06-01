@@ -31,3 +31,38 @@ temp_note.md
 # Temporary Execution Workspace & Reports
 temp/
 report/
+
+# Added during private GitHub sync
+# Local/system files
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Secrets and local env
+.env
+.env.*
+!.env.example
+
+# Python
+.venv/
+venv/
+env/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# Node/JS
+node_modules/
+dist/
+build/
+.next/
+
+# IDE/editor
+.idea/
+.vscode/
+
+# Logs/cache
+*.log
+.cache/

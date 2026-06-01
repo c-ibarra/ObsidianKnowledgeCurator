@@ -26,12 +26,20 @@ without breaking its current structure.
 
 ## AVAILABLE SKILLS (in order of use)
 
+### Core & Visual Skills
 1. **`obsidian-cli`** → for ALL vault operations (read, write, search, move). Read this skill before any operation.
-2. **`summary-generator`** → to process all content from any source
-3. **`superpowers`** → to validate before writing to Obsidian
-4. **`presentaciones-visuales`** → only if the user explicitly requests it
-5. **`canvas-design`** → for exportable infographics or posters (.png / .pdf)
-6. **`theme-factory`** → to apply visual themes to existing artifacts
+2. **`summary-generator`** → to process all content from any source.
+3. **`superpowers`** → to validate before writing to Obsidian.
+4. **`presentaciones-visuales`** → only if the user explicitly requests it.
+5. **`canvas-design`** → for exportable infographics or posters (.png / .pdf).
+6. **`theme-factory`** → to apply visual themes to existing artifacts.
+
+### Native Antigravity Vault Skills (in `.agent/skills/`)
+7. **`notion-curator`** → Autonomous, keyless curation and migration of imported Notion notes.
+8. **`vault-linter`** → Recursive, local check for orphan notes, dead wikilinks, and knowledge contradictions.
+9. **`master-plan-builder`** → Dynamic auto-indexing and regeneration of Category Master Plans.
+10. **`wiki-compiler`** → Background technical concept synthesizer and cross-linking wiki compiler.
+11. **`knowledge-synthesis` / `knowledge-link`** → Structural note-to-note linking and semantic cluster mapping.
 
 ## VISUAL TOOLS (without skill)
 
@@ -75,6 +83,10 @@ The project has automation tools in the `scripts/` folder to completely streamli
 4. **`scripts/knowledge_commands.py`**:
    - **Purpose**: Advanced CLI for deep reasoning over the vault. Supports commands like `/trace` (chronological evolution of ideas), `/emerge` (discovering implicit patterns), and `/drift` (comparing intent vs actual recorded behavior).
    - **Execution**: `uv run python scripts/knowledge_commands.py --trace "Concept"`
+
+5. **`scripts/curate_notion_import.py`**:
+   - **Purpose**: Generic and decoupled Notion importer. Curates, formats, compiles wiki concepts, and updates Master Plans dynamically for any Notion folder, category path, or course name.
+   - **Execution**: `uv run python scripts/curate_notion_import.py --notion-dir "NotionFolder" --target-kb "TargetCategory" --course-name "CourseName" --execute`
 
 ---
 

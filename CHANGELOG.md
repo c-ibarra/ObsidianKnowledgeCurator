@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.0] - 2026-05-30
+
+### Added
+- **Generic Notion Curation Pipeline**: Refactored `curate_notion_import.py` to support fully parameterized command line execution (`--notion-dir`, `--target-kb`, `--course-name`) for any course or knowledge base.
+- **Native Antigravity SDK Skills**: Added specialized native skills under `.agent/skills/` (`notion-curator`, `vault-linter`, `master-plan-builder`, `wiki-compiler`) enabling keyless, prompt-less autonomous execution in background agent contexts.
+
+### Changed
+- Replaced monolithic, hardcoded script values with dynamic system-prompt construction using `{TARGET_KB}` and `{COURSE_NAME}` references.
+- Updated project documentation (`README.md`, `GEMINI.md`, `walkthrough.md`) to reflect the new dynamic scripts and native skill-based architecture.
+
 ## [2.0.0] - 2026-05-28
 
 ### Added
