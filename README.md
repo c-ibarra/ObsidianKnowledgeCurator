@@ -49,10 +49,10 @@ The project eschews heavy cloud abstractions in favor of a fast, local, agentic 
 
 ```mermaid
 graph TD;
-    A[External Content: YouTube/Web/PDF] -->|uv run curate_workflow.py| B(Stage 1: Source Ingestion)
-    B -->|Transcripts & Text| C{Gemini 3.1 Pro}
-    C -->|Generate Source Note| D[Zone 1: raw/]
-    C -->|Extract Concepts| E(Stage 2: Knowledge Compilation)
+    A[External Content: YouTube/Web/PDF] -->|uv run fetch_youtube_data.py| B(Stage 1: Source Ingestion)
+    B -->|Metadata & Transcript JSON| C{Antigravity Agent Context}
+    C -->|Generate Source Note natively| D[Zone 1: raw/]
+    C -->|Extract Concepts natively| E(Stage 2: Knowledge Compilation)
     E -->|Update/Create Pages| F[Zone 2: wiki/]
     E -->|Flag Contradictions| F
     
@@ -84,10 +84,10 @@ The vault is now strictly divided into three zones:
 
 ## 🔄 End-to-End Workflow
 
-### 1. Multi-Stage Ingestion Pipeline (`curate_workflow.py`)
-1. **Extraction:** Automates `yt-dlp` and `youtube-transcript-api` to pull and clean VTT transcripts.
-2. **Raw Generation:** Prompts Gemini to generate a highly structured markdown summary (Key Takeaways, Flashcards, Glossary) and saves it to the `raw/` zone.
-3. **Concept Compilation:** A secondary agentic pass reads the new raw note, identifies 3-7 core technical concepts, and either creates new `.md` files in the `wiki/` zone or appends the new insights to existing pages.
+### 1. Multi-Stage Ingestion Pipeline (`fetch_youtube_data.py`)
+1. **Extraction:** Automates `yt-dlp` and `youtube-transcript-api` to pull and clean VTT transcripts, saving them locally as JSON.
+2. **Raw Generation (Native):** The Antigravity agent natively reads the JSON file and generates a highly structured markdown summary (Key Takeaways, Flashcards, Glossary) saving it to the `raw/` zone.
+3. **Concept Compilation (Native):** Within the same agentic pass, it identifies 3-7 core technical concepts and either creates new `.md` files in the `wiki/` zone or appends the new insights to existing pages.
 
 ### 2. Advanced Vault Reasoning (`knowledge_commands.py`)
 Because the knowledge is structured, the agent can perform deep-vault operations:

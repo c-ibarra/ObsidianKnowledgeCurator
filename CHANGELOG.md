@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.2.0] - 2026-06-11
+
+### Added
+- **Native Agentic Curation**: The Antigravity agent now handles LLM reasoning, parsing, and markdown generation natively within its context, eliminating the need for hardcoded API calls inside scripts.
+- **`fetch_youtube_data.py`**: A new headless utility script replacing `curate_workflow.py` and `batch_wiki_extractor.py`. It solely extracts video metadata and transcripts via `yt-dlp` and `youtube-transcript-api` to a temporary JSON file for the agent to read.
+
+### Changed
+- Removed `.env` dependency for Gemini API keys in curation scripts, delegating all intelligence to the Antigravity SDK.
+- Updated `GEMINI.md` and `README.md` to reflect the new native curation architecture.
+
 ## [2.1.0] - 2026-05-30
 
 ### Added

@@ -72,9 +72,10 @@ The project has automation tools in the `scripts/` folder to completely streamli
    - **Purpose**: Recursively scans the vault (excluding the protected zone `dswok`), reads metadata from curated notes, and dynamically reconstructs `Master Plan — AI Engineering Curated Series.md` with an impeccable navigation map.
    - **Execution**: `uv run python scripts/update_master_plan.py`
 
-2. **`scripts/curate_workflow.py`**:
-   - **Purpose**: Headless end-to-end orchestrator. Receives a YouTube URL or ID, downloads and cleans the transcript, queries Gemini to generate the structured note in English, saves it to the correct category, and automatically updates the Master Plan.
-   - **Execution**: `uv run python scripts/curate_workflow.py --url <URL_or_ID>`
+2. **`scripts/fetch_youtube_data.py`**:
+   - **Purpose**: Headless extraction utility. Receives a YouTube URL or ID, downloads and cleans the transcript via `yt-dlp` and `youtube-transcript-api`, and saves it as a JSON file in `temp/`.
+   - **Execution**: `uv run python scripts/fetch_youtube_data.py --url <URL_or_ID>`
+   - **Note**: After execution, the Antigravity agent natively reads the JSON file and uses its context to generate the structured note and concepts.
 
 3. **`scripts/vault_linter.py`**:
    - **Purpose**: Health-check utility. Scans the vault to detect orphan notes, dead links, and explicit contradictions (marked with `[!contradiction]`). Ensures the link graph remains robust after migrations or massive edits.
