@@ -12,7 +12,7 @@ the vault's conventions (no YAML, blockquote header, standard sections) — usin
 
 ## Prerequisites
 ```bash
-pgrep -x Obsidian > /dev/null && echo "abierto" || echo "CERRADO"
+pgrep -x Obsidian > /dev/null && echo "open" || echo "CLOSED"
 # Read obsidian-cli skill before operating
 ```
 
@@ -53,59 +53,59 @@ Then identify cross-note patterns:
 
 ## Step 3 — Validate with `superpowers`
 Before writing:
-- [ ] No contenido inventado
-- [ ] Sin YAML frontmatter
-- [ ] `[[enlaces]]` en Relacionado existen en el vault
-- [ ] Nombre del archivo sigue el naming convention
-- [ ] Blockquote de cabecera correcto
+- [ ] No hallucinated content
+- [ ] No YAML frontmatter
+- [ ] `[[links]]` in Related exist in the vault
+- [ ] File name follows the naming convention
+- [ ] Correct header blockquote
 
 ## Step 4 — Write synthesis (vault conventions)
 
 ```markdown
-# Synthesis — <Tema>
+# Synthesis — <Topic>
 
-> **Síntesis — <Tema>**
-> Fuente: Múltiples notas del vault
-> Fecha: Mes Año
-> Tipo: análisis
+> **Synthesis — <Topic>**
+> Source: Multiple vault notes
+> Date: Month Year
+> Type: analysis
 > Tags: #no-read-yet
 
 ## 📌 Key Takeaways
-1. <insight más importante>
+1. <most important insight>
 2. ...
 3. ...
 
-## 1. <Tema Principal>
-<Párrafo sintetizando múltiples notas, citando como [[Nota A]], [[Nota B]]>
+## 1. <Main Topic>
+<Paragraph synthesizing multiple notes, citing as [[Note A]], [[Note B]]>
 
-## 2. <Tensiones y Preguntas Abiertas>
-- [[Nota A]] argumenta X, pero [[Nota C]] sugiere Y — sin resolver
-- ¿Por qué ocurre Z? Ninguna nota responde esto aún
+## 2. <Tensions and Open Questions>
+- [[Note A]] argues X, but [[Note C]] suggests Y — unresolved
+- Why does Z happen? No note answers this yet
 
 ## Flashcards
-P: <pregunta clave>
-R: <respuesta sintetizada>
+Q: <key question>
+A: <synthesized answer>
 
-## Glosario
-**Término**: Definición
+## Glossary
+**Term**: Definition
 
-## Relacionado
-- [[Nota A]]
-- [[Nota B]]
-- [[Nota C]]
+## Related
+- [[Note A]]
+- [[Note B]]
+- [[Note C]]
 ```
 
 ## Step 5 — Save to vault
 ```bash
-obsidian create path="dataScienceKnowledgeBase/AI Engineer/<Categoría>/Synthesis — <Tema>.md" \
-  content="<contenido>" silent
+obsidian create path="<RootFolder>/<Category>/Synthesis — <Topic>.md" \
+  content="<content>" silent
 
-obsidian read file="Synthesis — <Tema>"   # verify
+obsidian read file="Synthesis — <Topic>"   # verify
 ```
 
 Optionally add backlink in source notes:
 ```bash
-obsidian append file="<source note>" content="\n→ Sintetizado en: [[Synthesis — <Tema>]]"
+obsidian append file="<source note>" content="\n→ Synthesized in: [[Synthesis — <Topic>]]"
 ```
 
 ## Constraints
@@ -117,14 +117,14 @@ obsidian append file="<source note>" content="\n→ Sintetizado en: [[Synthesis 
 
 ## Examples
 
-**"Sintetiza mis notas sobre MCP"**
+**"Synthesize my notes on MCP"**
 ```bash
 obsidian search query="MCP Model Context Protocol" limit=10
 obsidian files folder="dataScienceKnowledgeBase/AI Engineer/MCP" total
 # read → summary-generator → validate → write to Syntheses or MCP folder
 ```
 
-**"Combina mis notas de LangGraph y LangChain"**
+**"Combine my notes on LangGraph and LangChain"**
 ```bash
 obsidian search query="LangGraph" limit=5
 obsidian search query="LangChain" limit=5

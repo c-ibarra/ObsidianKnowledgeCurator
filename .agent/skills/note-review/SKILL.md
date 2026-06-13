@@ -11,7 +11,7 @@ improvements — using `obsidian` CLI for all operations.
 
 ## Prerequisites
 ```bash
-pgrep -x Obsidian > /dev/null && echo "abierto" || echo "CERRADO"
+pgrep -x Obsidian > /dev/null && echo "open" || echo "CLOSED"
 # Read obsidian-cli skill before operating
 ```
 
@@ -28,41 +28,41 @@ obsidian wordcount file="<note name>"
 ```
 
 2. Evaluate against vault quality checklist:
-- [ ] Título H1 claro y específico (no "Untitled")
-- [ ] Blockquote de cabecera presente con todos los campos
-- [ ] `Tags: #no-read-yet` en el blockquote (o tag actualizado)
-- [ ] Sin YAML frontmatter
-- [ ] Sección `## 📌 Key Takeaways` presente
-- [ ] Al menos un `[[wikilink]]` saliente
-- [ ] Sección `## Relacionado` presente
-- [ ] Sin emojis fuera de `## 📌 Key Takeaways`
-- [ ] Nombre de archivo sigue la naming convention
-- [ ] Contenido sustancial (>3 oraciones reales)
+- [ ] Clear and specific H1 title (not "Untitled")
+- [ ] Header blockquote present with all fields
+- [ ] `Tags: #no-read-yet` in blockquote (or updated tag)
+- [ ] No YAML frontmatter
+- [ ] `## 📌 Key Takeaways` section present
+- [ ] At least one outgoing `[[wikilink]]`
+- [ ] `## Related` section present
+- [ ] No emojis outside of `## 📌 Key Takeaways`
+- [ ] File name follows naming convention
+- [ ] Substantial content (>3 real sentences)
 
 3. Present review report:
 ```
-📋 Revisión: [[Nombre de la Nota]]
+📋 Review: [[Note Name]]
 
-✅ Bien:
-- Estructura correcta y título claro
+✅ Good:
+- Correct structure and clear title
 
 ⚠️ Issues:
-- Sin blockquote de cabecera
-- Sin wikilinks salientes — nota aislada
-- Nombre de archivo no sigue el naming convention
+- Missing header blockquote
+- No outgoing wikilinks — isolated note
+- File name doesn't follow naming convention
 
-✏️ Cambios sugeridos:
-1. Agregar blockquote de cabecera con Tags: #no-read-yet
-2. Agregar en Relacionado: [[Nota X]], [[Nota Y]]
-3. Renombrar a: "Canal — Título del Video.md"
+✏️ Suggested changes:
+1. Add header blockquote with Tags: #no-read-yet
+2. Add to Related: [[Note X]], [[Note Y]]
+3. Rename to: "Channel — Video Title.md"
 
-¿Aplicar? [Todo / Seleccionar / Omitir]
+Apply? [All / Select / Skip]
 ```
 
 4. If approved, apply:
 ```bash
-obsidian prepend file="<name>" content="> **Autor — Título**\n> Fuente: ...\n> Tipo: video\n> Tags: #no-read-yet\n"
-obsidian append file="<name>" content="\n## Relacionado\n- [[Nota X]]"
+obsidian prepend file="<name>" content="> **Author — Title**\n> Source: ...\n> Type: video\n> Tags: #no-read-yet\n"
+obsidian append file="<name>" content="\n## Related\n- [[Note X]]"
 obsidian rename file="<old name>" name="<new name>"  # preserves backlinks
 ```
 
@@ -75,35 +75,35 @@ obsidian recents limit=20
 Cross-reference: notes with `#no-read-yet` that haven't appeared in recents = likely stale.
 
 Present sorted by estimated age. For each, offer:
-- "¿Desarrollar esta nota?" → open and expand
-- "¿Archivar?" → `obsidian move file="<name>" folder="_archive"`
-- "Omitir"
+- "Expand this note?" → open and expand
+- "Archive?" → `obsidian move file="<name>" folder="_archive"`
+- "Skip"
 
 ## Mode C — Vault health check
 
 Run diagnostics (excluding `dswok`):
 ```bash
-obsidian orphans total        # notas sin ningún enlace
-obsidian unresolved           # wikilinks rotos
-obsidian deadends             # notas sin backlinks
-obsidian tags total           # taxonomía de tags
-obsidian files folder="dataScienceKnowledgeBase/AI Engineer" total
+obsidian orphans total        # notes without any links
+obsidian unresolved           # broken wikilinks
+obsidian deadends             # notes without backlinks
+obsidian tags total           # tag taxonomy
+obsidian files folder="<RootFolder>" total
 ```
 
 Report format:
 ```
 🏥 Vault Health Report
 
-📁 Notas en AI Engineer: X
-🔗 Notas huérfanas: X (sin enlaces entrantes ni salientes)
-🔴 Wikilinks rotos: X
-⬛ Notas sin backlinks: X
-🏷️ Tags únicos: X
+📁 Notes in RootFolder: X
+🔗 Orphan notes: X (no incoming or outgoing links)
+🔴 Broken wikilinks: X
+⬛ Notes without backlinks: X
+🏷️ Unique tags: X
 
-Recomendaciones:
-1. Revisar X notas huérfanas — enlazar o archivar
-2. Corregir X wikilinks rotos
-3. [si hay muchos tags] Consolidar taxonomía
+Recommendations:
+1. Review X orphan notes — link or archive
+2. Fix X broken wikilinks
+3. [if many tags] Consolidate taxonomy
 ```
 
 Offer to address each category one at a time.
@@ -117,7 +117,7 @@ Offer to address each category one at a time.
 
 ## Examples
 
-**"Revisa la nota de Claude Code CLI"**
+**"Review Claude Code CLI note"**
 ```bash
 obsidian read file="Claude Code CLI"
 obsidian links file="Claude Code CLI"
@@ -126,7 +126,7 @@ obsidian wordcount file="Claude Code CLI"
 # → report → user approves → apply fixes
 ```
 
-**"Health check del vault"**
+**"Vault health check"**
 ```bash
 obsidian orphans total
 obsidian unresolved

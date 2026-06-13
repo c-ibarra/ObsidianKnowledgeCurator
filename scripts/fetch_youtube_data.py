@@ -74,7 +74,7 @@ def get_transcript(video_id: str) -> str:
     try:
         api = YouTubeTranscriptApi()
         fetched = api.fetch(video_id, languages=['en', 'es'])
-        text = " ".join([snippet.text for snippet in fetched.snippets])
+        text = "\n".join([snippet.text for snippet in fetched.snippets])
         return text
     except Exception as e:
         print(f"youtube-transcript-api failed: {e}. Trying fallback with yt-dlp...", file=sys.stderr)
@@ -124,7 +124,7 @@ def get_transcript(video_id: str) -> str:
             prev = line
             
         shutil.rmtree(tmp_dir, ignore_errors=True)
-        return " ".join(deduped)
+        return "\n".join(deduped)
     except Exception as e:
         print(f"Critical error obtaining transcript: {e}", file=sys.stderr)
         return ""
@@ -141,8 +141,7 @@ def main():
     
     data = {
         "video_id": video_id,
-        "metadata": details,
-        "transcript": transcript
+        "metadata": details
     }
     
     output_path = args.output
@@ -153,7 +152,11 @@ def main():
     with open(output_path, "w", encoding="utf-8") as f:
         json.dump(data, f, indent=2, ensure_ascii=False)
         
-    print(f"Successfully extracted data to {output_path}")
+    txt_output_path = Path(output_path).with_suffix(".txt")
+    with open(txt_output_path, "w", encoding="utf-8") as f:
+        f.write(transcript)
+        
+    print(f"Successfully extracted metadata to {output_path} and transcript to {txt_output_path}")
 
 if __name__ == "__main__":
     main()

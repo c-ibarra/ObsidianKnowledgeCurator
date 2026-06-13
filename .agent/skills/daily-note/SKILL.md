@@ -11,7 +11,7 @@ The daily note follows the vault's conventions: no YAML, no emojis (except 📌 
 
 ## Prerequisites
 ```bash
-pgrep -x Obsidian > /dev/null && echo "abierto" || echo "CERRADO"
+pgrep -x Obsidian > /dev/null && echo "open" || echo "CLOSED"
 # Read obsidian-cli skill before operating
 ```
 
@@ -37,18 +37,18 @@ obsidian daily
 
 If no template, create with minimal structure (no YAML, no frontmatter):
 ```bash
-obsidian daily:append content="# $(date +%Y-%m-%d)\n\n## Foco del día\n- \n\n## Log\n\n## Ideas\n- \n\n## Notas creadas hoy\n- \n\n## Revisión\n- ¿Qué salió bien?\n- ¿Qué mejorar?"
+obsidian daily:append content="# $(date +%Y-%m-%d)\n\n## Daily Focus\n- \n\n## Log\n\n## Ideas\n- \n\n## Notes Created Today\n- \n\n## Review\n- What went well?\n- What to improve?"
 ```
 
 ## Step 3 — Handle update requests
 
 | User intent | Command |
 |------------|---------|
-| Entrada de log | `obsidian daily:append content="**HH:MM** — <contenido>"` |
-| Tarea / todo | `obsidian daily:append content="- [ ] <tarea>"` |
+| Log entry | `obsidian daily:append content="**HH:MM** — <content>"` |
+| Task / todo | `obsidian daily:append content="- [ ] <task>"` |
 | Idea | `obsidian daily:append content="- <idea>"` |
-| Nota creada | `obsidian daily:append content="- [[<Título de Nota>]]"` |
-| Prioridad al inicio | `obsidian daily:prepend content="## Top Prioridad\n- <item>"` |
+| Note created | `obsidian daily:append content="- [[<Note Title>]]"` |
+| Top priority | `obsidian daily:prepend content="## Top Priority\n- <item>"` |
 
 ## Step 4 — Confirm
 After any create/update, confirm what was added.
@@ -62,18 +62,18 @@ Offer to open: `obsidian daily` (opens in UI).
 
 ## Examples
 
-**"Crea el daily note de hoy"**
+**"Create today's daily note"**
 ```bash
 obsidian daily:read   # check existence
 obsidian daily        # create/open via Obsidian's template
 ```
 
-**"Loguea: terminé la integración con la API de Claude"**
+**"Log: finished integration with Claude API"**
 ```bash
-obsidian daily:append content="**14:35** — Terminé la integración con la API de Claude"
+obsidian daily:append content="**14:35** — Finished integration with Claude API"
 ```
 
-**"Agrega tarea: revisar la nota de LangGraph"**
+**"Add task: review LangGraph note"**
 ```bash
-obsidian daily:append content="- [ ] Revisar [[MCP 03 — Agentic AI With LangGraph]]"
+obsidian daily:append content="- [ ] Review [[MCP 03 — Agentic AI With LangGraph]]"
 ```

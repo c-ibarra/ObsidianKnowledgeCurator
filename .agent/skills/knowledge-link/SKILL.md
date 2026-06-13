@@ -11,7 +11,7 @@ and keeping Master Plans up to date. Uses `obsidian` CLI for all operations.
 
 ## Prerequisites
 ```bash
-pgrep -x Obsidian > /dev/null && echo "abierto" || echo "CERRADO"
+pgrep -x Obsidian > /dev/null && echo "open" || echo "CLOSED"
 # Read obsidian-cli skill before operating
 ```
 
@@ -38,9 +38,9 @@ Suggested links for [[Target Note]]:
 - [[Related Note B]] — continuation of idea: Y
 ```
 
-4. If confirmed, append to the note's `## Relacionado` section:
+4. If confirmed, append to the note's `## Related` section:
 ```bash
-obsidian append file="<note name>" content="\n## Relacionado\n- [[Related Note A]]\n- [[Related Note B]]"
+obsidian append file="<note name>" content="\n## Related\n- [[Related Note A]]\n- [[Related Note B]]"
 ```
 
 ## Mode B — Find orphan notes
@@ -63,43 +63,43 @@ Never include results from `dswok` in the orphan list.
 ## Mode C — Create or Update Master Plan
 
 Master Plans are index notes for a series or category. They live at:
-`dataScienceKnowledgeBase/AI Engineer/<Categoría>/Master Plan — <Serie>.md`
+`<RootFolder>/<Category>/Master Plan — <Series>.md`
 
 **Check if one exists first**:
 ```bash
-obsidian search query="Master Plan <categoría>" limit=3
+obsidian search query="Master Plan <category>" limit=3
 ```
 
 **If updating**, append the new note entry:
 ```bash
-obsidian append file="Master Plan — <Serie>" \
-  content="\n- [[<Nombre Nota>]] · Tipo · Fecha"
+obsidian append file="Master Plan — <Series>" \
+  content="\n- [[<Note Name>]] · Type · Date"
 ```
 
 **If creating**, use this structure (no YAML):
 ```markdown
-# Master Plan — <Serie o Categoría>
+# Master Plan — <Series or Category>
 
-> **Índice de la serie/categoría**
-> Tipo: master-plan
+> **Series/Category Index**
+> Type: master-plan
 > Tags: #index
 
-## Descripción
-<2-3 líneas describiendo la serie o categoría>
+## Description
+<2-3 lines describing the series or category>
 
-## Notas
+## Notes
 
-### <Subsección si aplica>
-- [[Nota 01 — Título]] · video · Mes Año
-- [[Nota 02 — Título]] · artículo · Mes Año
+### <Subsection if applicable>
+- [[Note 01 — Title]] · video · Month Year
+- [[Note 02 — Title]] · article · Month Year
 
-## Relacionado
-- [[Master Plan — Categoría Relacionada]]
+## Related
+- [[Master Plan — Related Category]]
 ```
 
 ```bash
-obsidian create path="dataScienceKnowledgeBase/AI Engineer/<Categoría>/Master Plan — <Serie>.md" \
-  content="<estructura de arriba>" silent
+obsidian create path="<RootFolder>/<Category>/Master Plan — <Series>.md" \
+  content="<above structure>" silent
 ```
 
 ## Constraints
@@ -111,14 +111,14 @@ obsidian create path="dataScienceKnowledgeBase/AI Engineer/<Categoría>/Master P
 
 ## Examples
 
-**"Actualiza el Master Plan de Claude Code"**
+**"Update the Claude Code Master Plan"**
 ```bash
 obsidian search query="Master Plan Claude Code" limit=3
 obsidian files folder="dataScienceKnowledgeBase/AI Engineer/Claude Code" total
 # append new entries to Master Plan
 ```
 
-**"¿Tengo notas huérfanas?"**
+**"Do I have orphan notes?"**
 ```bash
 obsidian orphans total
 obsidian deadends

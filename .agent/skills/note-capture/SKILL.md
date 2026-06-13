@@ -8,12 +8,12 @@ description: Use this skill when the user wants to capture a new idea, article, 
 ## Goal
 Transform raw input into a structured Obsidian note that follows the vault's conventions
 exactly — no YAML, blockquote header, correct naming, correct sections — and save it to
-the right folder under `dataScienceKnowledgeBase/AI Engineer/`.
+the right folder under the appropriate `<RootFolder>`.
 
 ## Prerequisites
 ```bash
 # 1. Obsidian must be open
-pgrep -x Obsidian > /dev/null && echo "abierto" || echo "CERRADO"
+pgrep -x Obsidian > /dev/null && echo "open" || echo "CLOSED"
 
 # 2. Read obsidian-cli skill before operating
 ```
@@ -22,7 +22,7 @@ pgrep -x Obsidian > /dev/null && echo "abierto" || echo "CERRADO"
 ```bash
 # Check existing folder structure
 obsidian folders
-obsidian files folder="dataScienceKnowledgeBase/AI Engineer" total
+obsidian files folder="<RootFolder>" total
 
 # Search for duplicates
 obsidian search query="<core topic>" limit=5
@@ -35,21 +35,21 @@ If a note on the same topic already exists → update it, don't create a new one
 
 | Input type | Naming pattern | Target folder |
 |-----------|---------------|--------------|
-| YouTube video (series) | `Serie ## — Título.md` | `AI Engineer/<Categoría>/` |
-| YouTube video (standalone) | `Canal — Título del Video.md` | `AI Engineer/<Categoría>/` |
-| Article / web | `Publicación — Título.md` | `AI Engineer/<Categoría>/` |
-| Raw idea / concept | `Concept — Título descriptivo.md` | `AI Engineer/<Categoría>/` |
-| Master plan | `Master Plan — Nombre Serie.md` | `AI Engineer/<Categoría>/` |
+| YouTube video (series) | `Series ## — Title.md` | `<RootFolder>/<Category>/` |
+| YouTube video (standalone) | `Channel — Video Title.md` | `<RootFolder>/<Category>/` |
+| Article / web | `Publication — Title.md` | `<RootFolder>/<Category>/` |
+| Raw idea / concept | `Concept — Descriptive Title.md` | `<RootFolder>/<Category>/` |
+| Master plan | `Master Plan — Series Name.md` | `<RootFolder>/<Category>/` |
 
 ## Step 3 — Build note structure (no YAML, ever)
 
 ```markdown
-# Título Descriptivo
+# Descriptive Title
 
-> **Autor — Título Descriptivo**
-> Fuente: Descripción de la fuente
-> Canal/Autor: Nombre · Fecha: Mes Año
-> Tipo: artículo | video | análisis
+> **Author — Descriptive Title**
+> Source: Source description
+> Channel/Author: Name · Date: Month Year
+> Type: article | video | analysis
 > Tags: #no-read-yet
 
 ## 📌 Key Takeaways
@@ -57,44 +57,44 @@ If a note on the same topic already exists → update it, don't create a new one
 2. ...
 3. ...
 
-## 1. Sección Temática
+## 1. Thematic Section
 ...
 
-## 2. Sección Temática
+## 2. Thematic Section
 ...
 
 ## Flashcards
-P: Pregunta
-R: Respuesta
+Q: Question
+A: Answer
 
-## Glosario
-**Término**: Definición (solo técnicos no obvios)
+## Glossary
+**Term**: Definition (only non-obvious technical terms)
 
-## Relacionado
-- [[Nota existente en el vault]]
+## Related
+- [[Existing note in the vault]]
 ```
 
 ## Step 4 — Validate with `superpowers` before writing
-- [ ] Sin YAML frontmatter
-- [ ] Blockquote de cabecera con `Tags: #no-read-yet`
-- [ ] Nombre de archivo sigue el naming convention
-- [ ] `[[enlaces]]` en Relacionado existen en el vault
-- [ ] Sin contenido inventado
-- [ ] Categoría coherente con el vault
+- [ ] No YAML frontmatter
+- [ ] Header blockquote with `Tags: #no-read-yet`
+- [ ] File name follows the naming convention
+- [ ] `[[links]]` in Related exist in the vault
+- [ ] No hallucinated content
+- [ ] Category is consistent with the vault
 
 ## Step 5 — Write to vault
 ```bash
 # Create new note
-obsidian create path="dataScienceKnowledgeBase/AI Engineer/<Categoría>/<Nombre Nota>.md" \
-  content="<contenido>" silent
+obsidian create path="<RootFolder>/<Category>/<Note Name>.md" \
+  content="<content>" silent
 
 # Verify
-obsidian read file="<Nombre Nota>"
+obsidian read file="<Note Name>"
 ```
 
 After saving, update or create the category's Master Plan:
 ```bash
-obsidian search query="Master Plan <Categoría>" limit=3
+obsidian search query="Master Plan <Category>" limit=3
 # append note link to existing Master Plan, or create one
 ```
 
@@ -102,14 +102,14 @@ obsidian search query="Master Plan <Categoría>" limit=3
 - Never use YAML frontmatter
 - Never use emojis outside of `## 📌 Key Takeaways`
 - Never touch `dataScienceKnowledgeBase/dswok`
-- Never invent content — mark unavailable info as `[NO DISPONIBLE]`
+- Never invent content — mark unavailable info as `[NOT AVAILABLE]`
 - Always check for duplicates before creating
 
 ## Example
 
-**Input**: "Captura esta idea: los agentes de IA son mejores con memoria externa"
+**Input**: "Capture this idea: AI agents are better with external memory"
 
-1. Search: `obsidian search query="agentes IA memoria" limit=5`
+1. Search: `obsidian search query="AI agents memory" limit=5`
 2. No duplicates found → create new note
-3. Target: `dataScienceKnowledgeBase/AI Engineer/Agentes/Concept — Agentes IA Memoria Externa.md`
+3. Target: `dataScienceKnowledgeBase/AI Engineer/Agents/Concept — AI Agents External Memory.md`
 4. Validate → write → verify → update Master Plan if exists

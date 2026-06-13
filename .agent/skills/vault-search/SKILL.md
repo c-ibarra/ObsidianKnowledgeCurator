@@ -11,7 +11,7 @@ relevance, and present actionable results with excerpts.
 
 ## Prerequisites
 ```bash
-pgrep -x Obsidian > /dev/null && echo "abierto" || echo "CERRADO"
+pgrep -x Obsidian > /dev/null && echo "open" || echo "CLOSED"
 # Read obsidian-cli skill before operating
 ```
 
@@ -38,11 +38,11 @@ obsidian search query="<query>" limit=10
 **If empty results**:
 1. Try a broader synonym
 2. Remove qualifiers
-3. If still empty: "No encontré notas sobre X. ¿Quieres que cree una?"
+3. If still empty: "No notes found about X. Do you want me to create one?"
 
 **Fallback** (if search times out — Obsidian in background):
 ```bash
-find "/Users/carlosibarra/Library/CloudStorage/OneDrive-Personal/Obsidian" \
+find "/Users/carlosibarra/projects/obsidianKnowledgeCurator/obsidianKnowledgeCurator" \
   -name "*.md" ! -path "*/dswok/*" \
   -exec grep -il "<query>" {} \; 2>/dev/null | head -10
 ```
@@ -51,21 +51,21 @@ find "/Users/carlosibarra/Library/CloudStorage/OneDrive-Personal/Obsidian" \
 ```bash
 obsidian read file="<note name>"
 ```
-Read top 3–5. Rank by: title match → recency → note type (análisis > video > artículo).
+Read top 3–5. Rank by: title match → recency → note type (analysis > video > article).
 
 ## Step 4 — Present results
 
 ```
 📄 [[Note Title]]
-Path: dataScienceKnowledgeBase/AI Engineer/<folder>/<file>.md
+Path: <RootFolder>/<folder>/<file>.md
 Tags: #tag1 #tag2
-Excerpt: "…frase relevante de la nota…"
+Excerpt: "…relevant sentence from the note…"
 ```
 
 Max 7 results. After listing, offer:
-- Abrir en Obsidian: `obsidian open file="<name>"`
-- Sintetizar los resultados encontrados → skill `knowledge-synthesis`
-- Capturar algo nuevo sobre este tema → skill `note-capture`
+- Open in Obsidian: `obsidian open file="<name>"`
+- Synthesize the found results → skill `knowledge-synthesis`
+- Capture something new about this topic → skill `note-capture`
 
 ## Constraints
 - Excerpts only in initial results — full content only if user asks
@@ -75,18 +75,18 @@ Max 7 results. After listing, offer:
 
 ## Examples
 
-**"¿Qué tengo sobre LangGraph?"**
+**"What do I have on LangGraph?"**
 ```bash
 obsidian search query="LangGraph" limit=10
 obsidian search:context query="LangGraph agents" limit=5
 ```
 
-**"Muéstrame todo lo etiquetado #no-read-yet"**
+**"Show me everything tagged #no-read-yet"**
 ```bash
 obsidian tag name="no-read-yet"
 ```
 
-**"¿Tengo notas sobre Claude Code?"**
+**"Do I have notes on Claude Code?"**
 ```bash
 obsidian search query="Claude Code" limit=10
 obsidian files folder="dataScienceKnowledgeBase/AI Engineer/Claude Code" total

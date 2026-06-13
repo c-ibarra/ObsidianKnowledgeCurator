@@ -8,21 +8,23 @@ import json
 # CONFIGURATION
 # ==============================================================================
 
+import argparse
+
 PROJECT_DIR = Path(__file__).parent.parent
 VAULT_BASE = Path(os.environ.get("OBSIDIAN_VAULT_PATH", "/Users/carlosibarra/Library/CloudStorage/OneDrive-Personal/Obsidian"))
-AI_ENGINEER_DIR = VAULT_BASE / "dataScienceKnowledgeBase" / "AI Engineer"
 
 # ==============================================================================
 # LINTER LOGIC
 # ==============================================================================
 
-def run_linter():
+def run_linter(target_kb: str = "dataScienceKnowledgeBase/AI Engineer"):
+    target_kb_dir = VAULT_BASE / target_kb
     print("=" * 80)
     print("VAULT HEALTH CHECK & LINTER")
     print("=" * 80)
     
-    if not AI_ENGINEER_DIR.exists():
-        print(f"Error: Directory not found {AI_ENGINEER_DIR}")
+    if not target_kb_dir.exists():
+        print(f"Error: Directory not found {target_kb_dir}")
         return
 
     all_notes = {}
@@ -31,14 +33,14 @@ def run_linter():
     contradictions = []
     
     # 1. Gather all files and their contents
-    for root, dirs, files in os.walk(AI_ENGINEER_DIR):
+    for root, dirs, files in os.walk(target_kb_dir):
         if "dswok" in root:
             continue
             
         for file in files:
             if file.endswith(".md"):
                 file_path = Path(root) / file
-                rel_path = file_path.relative_to(AI_ENGINEER_DIR)
+                rel_path = file_path.relative_to(target_kb_dir)
                 file_name_no_ext = file[:-3]
                 
                 try:
@@ -138,4 +140,7 @@ def run_linter():
     print("\n" + "=" * 80)
 
 if __name__ == "__main__":
-    run_linter()
+    parser = argparse.ArgumentParser(description="Vault Health Check and Linter")
+    parser.add_argument("--target-kb", default="dataScienceKnowledgeBase/AI Engineer", help="Target knowledge base folder relative to vault root")
+    args = parser.parse_args()
+    run_linter(args.target_kb)

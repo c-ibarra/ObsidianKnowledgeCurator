@@ -6,7 +6,7 @@ description: Use this skill when the user wants to audit, lint, or check the hea
 # Vault Linter Skill
 
 ## Goal
-Natively audit the Obsidian Vault directory (`dataScienceKnowledgeBase/AI Engineer` or `dataScienceKnowledgeBase/Machine Learning`) to verify link integrity, detect orphan notes, identify dead links, and locate contradictions **keylessly** and **silently** without manual prompt popups.
+Natively audit the Obsidian Vault directory (e.g. `dataScienceKnowledgeBase/AI Engineer` or `software engineer`) to verify link integrity, detect orphan notes, identify dead links, and locate contradictions **keylessly** and **silently** without manual prompt popups.
 
 ## Prerequisites
 - **Obsidian Vault Directory Permissions:** Recursively granted for native tools.
@@ -29,31 +29,31 @@ Map the complete backlinks graph:
 2. **Orphan Notes:** Locate notes that have **0 incoming links** and **0 outgoing links** (excluding the Category Master Plan files which act as index hubs).
 
 ## Step 4 — Generate Health Check Report
-Synthesize the audit results into a beautiful, concise markdown report in Spanish:
+Synthesize the audit results into a beautiful, concise markdown report:
 ```markdown
-# Reporte de Auditoría del Vault — <Fecha>
+# Vault Audit Report — <Date>
 
-## 📊 Resumen de Salud
-- **Total de Notas Analizadas:** <Count>
-- **Enlaces Rotos Detectados:** <Count>
-- **Notas Huérfanas Identificadas:** <Count>
-- **Contradicciones Encontradas:** <Count>
-
----
-
-## ⚠️ Enlaces Rotos (Dead Links)
-- **[[Enlace Roto]]** (referenciado en: [[Nota Origen A]], [[Nota Origen B]])
+## 📊 Health Summary
+- **Total Notes Analyzed:** <Count>
+- **Broken Links Detected:** <Count>
+- **Orphan Notes Identified:** <Count>
+- **Contradictions Found:** <Count>
 
 ---
 
-## 🗺️ Notas Huérfanas (Orphans)
-- [[Nota Huérfana A]]
-- [[Nota Huérfana B]]
+## ⚠️ Dead Links
+- **[[Broken Link]]** (referenced in: [[Source Note A]], [[Source Note B]])
 
 ---
 
-## 🚫 Contradicciones Detectadas
-- En **[[Nota X]]** (Línea <Línea>): <Texto de la contradicción>
+## 🗺️ Orphan Notes
+- [[Orphan Note A]]
+- [[Orphan Note B]]
+
+---
+
+## 🚫 Contradictions Detected
+- In **[[Note X]]** (Line <Line>): <Contradiction text>
 ```
 
 Present this report directly to the user and suggest specific refactoring actions (fixing dead links, linking orphans, or resolving contradictions).

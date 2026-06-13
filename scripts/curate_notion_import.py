@@ -134,23 +134,23 @@ Requisitos del Formato de Salida:
 CATEGORY: {COURSE_NAME}/{cleaned_section}
 
 2. A partir de la segunda línea, devuelve la nota estructurada exactamente así:
-- Un título único H1 en español (puedes limpiar prefijos como "FEML - XX - " del H1 si lo consideras apropiado, pero mantén el título temático claro).
+- Un título único H1 en inglés (puedes limpiar prefijos como "FEML - XX - " del H1 si lo consideras apropiado, pero mantén el título temático claro).
 - Un bloque de cita de metadatos limpio (blockquote) con:
-  > **Fuente:** Curso Notion
-  > **Autor:** Carlos Ibarra · **Fecha:** Mayo 2026
-  > **Tipo:** nota de curso
+  > **Source:** Notion Course
+  > **Author:** Carlos Ibarra · **Date:** May 2026
+  > **Type:** course note
   > **Tags:** #no-read-yet
 - Una sección "## 📌 Key Takeaways" con puntos numerados de los conceptos más importantes. Máximo uso de emojis en esta sección para resaltar insights.
-- Secciones temáticas ordenadas (## 1. Tema, ## 2. Tema) con el desarrollo técnico detallado de la nota, conservando código python, ventajas, desventajas e implementaciones prácticas.
-- Sección "## Flashcards" con las preguntas y respuestas clave formateadas en español:
-  1. **P:** ¿[Pregunta]? → **R:** [Respuesta sintética y clara]
-- Sección "## Glosario" con términos técnicos no obvios en formato:
-  - **[Término]**: [Definición]
-- Sección "## Relacionado" con enlaces de wikilinks sugeridos a otras notas del curso o conceptos.
+- Secciones temáticas ordenadas (## 1. Topic, ## 2. Topic) con el desarrollo técnico detallado de la nota, conservando código python, ventajas, desventajas e implementaciones prácticas.
+- Sección "## Flashcards" con las preguntas y respuestas clave formateadas en inglés:
+  1. **Q:** [Question]? → **A:** [Synthetic and clear answer]
+- Sección "## Glossary" con términos técnicos no obvios en formato:
+  - **[Term]**: [Definition]
+- Sección "## Related" con enlaces de wikilinks sugeridos a otras notas del curso o conceptos.
 - REGLAS CRÍTICAS:
   - NUNCA uses YAML frontmatter.
   - NUNCA uses emojis fuera de la sección "## 📌 Key Takeaways".
-  - Mantén el idioma en español.
+  - Mantén el idioma en inglés.
 
 Contenido de la nota original:
 \"\"\"
@@ -182,8 +182,8 @@ Actúas como un Compilador de Conocimiento. Lee la siguiente nota curada:
 {note_content[:15000]}
 
 Identifica de 3 a 5 conceptos técnicos fundamentales explicados detalladamente en este texto.
-Para cada concepto, provee una explicación sintetizada y profunda en español basada ÚNICAMENTE en este texto.
-Formatea tu salida estrictamente como un objeto JSON crudo en español donde las llaves sean los nombres de los conceptos (en formato Camel Case o Pascal Case sin espacios, ej. "TargetEncoding", "ImputacionMediaMediana") y los valores sean las explicaciones detalladas.
+Para cada concepto, provee una explicación sintetizada y profunda en inglés basada ÚNICAMENTE en este texto.
+Formatea tu salida estrictamente como un objeto JSON crudo en inglés donde las llaves sean los nombres de los conceptos (en formato Camel Case o Pascal Case sin espacios, ej. "TargetEncoding", "ImputacionMediaMediana") y los valores sean las explicaciones detalladas.
 No incluyas bloques de markdown como ```json, solo el objeto JSON crudo.
 """
         wiki_response = call_gemini(wiki_prompt)
@@ -201,10 +201,10 @@ No incluyas bloques de markdown como ```json, solo el objeto JSON crudo.
                 if concept_file.exists():
                     existing = concept_file.read_text(encoding="utf-8")
                     if f"[[{source_link}]]" not in existing:
-                        new_content = f"{existing}\n\n## Actualización desde [[{source_link}]]\n{explanation}\n"
+                        new_content = f"{existing}\n\n## Update from [[{source_link}]]\n{explanation}\n"
                         concept_file.write_text(new_content, encoding="utf-8")
                 else:
-                    new_content = f"# {concept_name_clean}\n\n{explanation}\n\n## Fuentes\n- [[{source_link}]]\n"
+                    new_content = f"# {concept_name_clean}\n\n{explanation}\n\n## Sources\n- [[{source_link}]]\n"
                     concept_file.write_text(new_content, encoding="utf-8")
         except Exception as wiki_err:
             print(f"[WIKI ERR] Failed to extract concepts for {original_title}: {wiki_err}")
@@ -305,7 +305,7 @@ def rebuild_ml_master_plan():
     
     # Build Markdown table
     table_lines = [
-        "| Nota / Enlace | Autor | Fecha | Tipo | Sección / Categoría |",
+        "| Note / Link | Author | Date | Type | Section / Category |",
         "| --- | --- | --- | --- | --- |"
     ]
     for n in notes:
@@ -332,42 +332,42 @@ def rebuild_ml_master_plan():
         original_content = MASTER_PLAN_PATH.read_text(encoding="utf-8")
         
     # Check if we can replace the table section
-    pattern = r"(## Notas en esta categoría\n\n)(.*?)(?=\n\n---|\n---|\Z)"
+    pattern = r"(## (?:Notas en esta categoría|Notes in this category)\n\n)(.*?)(?=\n\n---|\n---|\Z)"
     if original_content and re.search(pattern, original_content, re.DOTALL):
         new_content = re.sub(pattern, f"\\1{table_content}", original_content, flags=re.DOTALL)
         # Update last modified date
-        new_content = re.sub(r'> \*\*Última actualización:\*\* .*', '> **Última actualización:** Mayo 2026', new_content)
+        new_content = re.sub(r'> \*\*(?:Última actualización|Last update):\*\* .*', '> **Last update:** May 2026', new_content)
         MASTER_PLAN_PATH.write_text(new_content, encoding="utf-8")
         print("Updated existing Master Plan successfully.")
     else:
         # Create a fresh new Master Plan
         master_plan_template = f"""# Master Plan — {category_name}
 
-> **Tipo:** Índice de recursos — artículos, tutoriales y guías sobre {category_name}
-> **Ruta:** `{category_name}/`
-> **Última actualización:** Mayo 2026
+> **Type:** Resource Index
+> **Path:** `{category_name}/`
+> **Last update:** May 2026
 
 ---
 
-## Descripción
+## Description
 
 {description}
 
 ---
 
-## Notas en esta categoría
+## Notes in this category
 
 {table_content}
 
 ---
 
-## Temas cubiertos
+## Themes covered
 
 {themes_section}
 
 ---
 
-## Relacionado
+## Related
 
 - [[Master Plan — Learn Harness Engineering]]
 """

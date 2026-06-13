@@ -13,7 +13,7 @@ Natively read curated notes in the `raw/` directories, extract their metadata (A
 - **Strictly use native tools:** Never shell out to terminal commands. Use native file tools.
 
 ## Step 1 — Scan Curated Raw Notes
-Search and list all `.md` files in the `raw/` folder of the target category recursively (e.g. `dataScienceKnowledgeBase/AI Engineer/raw` or `dataScienceKnowledgeBase/Machine Learning/raw`):
+Search and list all `.md` files in the `raw/` folder of the target category recursively (e.g. `dataScienceKnowledgeBase/AI Engineer/raw` or `software engineer/raw`):
 - Ignore other Master Plans, outlines, or temporary files.
 
 ## Step 2 — Parse Note Metadata (Zero-YAML Blockquotes)
@@ -30,15 +30,15 @@ For each note:
 Format the note metadata into a beautifully structured Markdown table.
 For example, for Machine Learning:
 ```markdown
-| Nota / Enlace | Autor | Fecha | Tipo | Sección / Categoría |
+| Note / Link | Author | Date | Type | Section / Category |
 | --- | --- | --- | --- | --- |
-| [[FEML - 25 - Categorical Encoding Introduction]] | Carlos Ibarra | Mayo 2026 | nota de curso | raw/Feature Engineering for Machine Learning/Section-08 — Categorical Encoding Basic |
+| [[FEML - 25 - Categorical Encoding Introduction]] | Carlos Ibarra | May 2026 | course note | raw/Feature Engineering for Machine Learning/Section-08 — Categorical Encoding Basic |
 ```
 
 ## Step 4 — Write to Master Plan File
 Locate the Master Plan file (e.g., `dataScienceKnowledgeBase/Machine Learning/Master Plan — Machine Learning.md`):
 1. **If file does not exist:** Create a fresh Master Plan note using the vault's standard template (H1, Description, Notes table, Themes covered, and Related links).
-2. **If file exists:** Read its contents and replace the table section dynamically between the `## Notas en esta categoría` header and the next section separator `---`. Use `replace_file_content` to execute this update silently.
+2. **If file exists:** Read its contents and replace the table section dynamically between the `## Notes in this category` header and the next section separator `---`. Use `replace_file_content` to execute this update silently.
 
 ## Step 5 — Verify Changes
 Natively read the updated Master Plan file to verify that all links are clickable, format is clean, and indices are aligned.
