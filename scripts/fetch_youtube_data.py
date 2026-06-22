@@ -24,43 +24,52 @@ def get_video_id(url_or_id: str) -> str:
             return match.group(1)
     return url_or_id
 
+def parse_ytdlp_json(json_str: str, video_id: str, url: str):
+    data = json.loads(json_str)
+    title = data.get("title", f"YouTube Video {video_id}")
+    channel = data.get("uploader", "Unknown")
+    upload_date = data.get("upload_date", "")
+    
+    date_str = "Year 2026"
+    if len(upload_date) == 8:
+        months = {
+            "01": "January", "02": "February", "03": "March", "04": "April", "05": "May", "06": "June",
+            "07": "July", "08": "August", "09": "September", "10": "October", "11": "November", "12": "December"
+        }
+        year = upload_date[:4]
+        month = months.get(upload_date[4:6], "January")
+        date_str = f"{month} {year}"
+    
+    return {
+        "title": title,
+        "channel": channel,
+        "date": date_str,
+        "url": url
+    }
+
 def get_video_details(video_id: str):
     url = f"https://www.youtube.com/watch?v={video_id}"
+    # Try without cookies first (extremely fast, avoids keychain profile locks)
     try:
-        title_proc = subprocess.run(
-            ["yt-dlp", "--get-title", "--no-warnings", "--cookies-from-browser", "chrome", url],
-            capture_output=True, text=True, timeout=30
+        proc = subprocess.run(
+            ["yt-dlp", "--dump-json", "--no-warnings", url],
+            capture_output=True, text=True, timeout=10
         )
-        title = title_proc.stdout.strip() if title_proc.returncode == 0 else f"YouTube Video {video_id}"
-
-        channel_proc = subprocess.run(
-            ["yt-dlp", "--print", "uploader", "--no-warnings", "--cookies-from-browser", "chrome", url],
-            capture_output=True, text=True, timeout=30
-        )
-        channel = channel_proc.stdout.strip() if channel_proc.returncode == 0 else "Uploader"
-
-        date_proc = subprocess.run(
-            ["yt-dlp", "--print", "upload_date", "--no-warnings", "--cookies-from-browser", "chrome", url],
-            capture_output=True, text=True, timeout=30
-        )
-        upload_date = date_proc.stdout.strip() if date_proc.returncode == 0 else ""
+        if proc.returncode == 0:
+            return parse_ytdlp_json(proc.stdout, video_id, url)
+    except Exception as e:
+        print(f"Fast metadata extraction failed: {e}")
         
-        date_str = "Year 2026"
-        if len(upload_date) == 8:
-            months = {
-                "01": "January", "02": "February", "03": "March", "04": "April", "05": "May", "06": "June",
-                "07": "July", "08": "August", "09": "September", "10": "October", "11": "November", "12": "December"
-            }
-            year = upload_date[:4]
-            month = months.get(upload_date[4:6], "January")
-            date_str = f"{month} {year}"
-
-        return {
-            "title": title,
-            "channel": channel,
-            "date": date_str,
-            "url": url
-        }
+    # Try with cookies as fallback
+    try:
+        proc = subprocess.run(
+            ["yt-dlp", "--dump-json", "--no-warnings", "--cookies-from-browser", "chrome", url],
+            capture_output=True, text=True, timeout=15
+        )
+        if proc.returncode == 0:
+            return parse_ytdlp_json(proc.stdout, video_id, url)
+        else:
+            raise RuntimeError(f"yt-dlp with cookies failed: {proc.stderr}")
     except Exception as e:
         print(f"Warning: Could not retrieve all metadata from yt-dlp: {e}")
         return {
