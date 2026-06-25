@@ -80,6 +80,19 @@ The vault is now strictly divided into three zones:
 | **`dev/`** | Architecture Decision Records (ADRs) and project files. | **Collaborative**. The agent acts as a co-pilot but requires explicit human approval to modify. |
 | **`dswok/`** | Protected personal core. | **Strictly Blocked**. The agent cannot read or write to this directory. |
 
+### 🧠 Adaptive Ingestion Policy (Wiki Density Control)
+To prevent the `wiki/` zone from accumulating redundant, stub, or low-value concept pages, the curator implements a strict density control policy:
+1. **Immediate Raw Ingestion**: The source note is immediately created/updated in the `raw/` zone following name conventions.
+2. **Concept Check**: Before generating any new concept note in the `wiki/` zone, the agent searches for existing similar concepts using the local fast search:
+   ```bash
+   uv run python scripts/knowledge_commands.py --find "<concept_name>"
+   ```
+3. **Incremental Update**: If the wiki page already exists, update it. If not, evaluate if it has high architectural significance. If not, link to existing related concepts (e.g., link a RAG sub-technique to `[[QueryTransformation]]` rather than building a stub).
+4. **Consolidated Sync**: Rebuild Navigation Map tables and verify the vault's graph integrity by running the unified sync command:
+   ```bash
+   uv run python scripts/sync_vault.py
+   ```
+
 ---
 
 ## 🔄 End-to-End Workflow
@@ -94,12 +107,15 @@ Because the knowledge is structured, the agent can perform deep-vault operations
 - `/trace`: Reconstructs the chronological evolution of an idea across the vault.
 - `/emerge`: Scans recent notes to find implicit conclusions or recurring patterns the user hasn't explicitly documented.
 - `/drift`: Compares stated intentions in older notes with actual recorded behavior in recent notes.
+- `--find <query>`: Performs a fast, case-insensitive note-name substring search, outputting matches as wikilinks and relative file paths.
 
-### 3. Continuous Integration / Health Checks (`vault_linter.py`)
-A custom Python linter that runs against the vault to ensure graph integrity:
-- Validates all `[[wikilinks]]` against existing files.
-- Detects isolated "orphan" notes.
-- Scans for the `> [!contradiction]` callout, which the agent injects when new sources conflict with existing wiki knowledge.
+### 3. Continuous Integration & Sync (`sync_vault.py`, `vault_linter.py`)
+To preserve index alignment and check graph health in one step:
+- **`sync_vault.py`**: A unified sync runner that updates category/series Master Plans (via `update_master_plan.py`) and executes the vault health check (via `vault_linter.py`) sequentially. Accepts `--target-kb` parameter forwarding.
+- **`vault_linter.py`**: A custom Python linter that runs against the vault to ensure graph integrity:
+  - Validates all `[[wikilinks]]` against existing files.
+  - Detects isolated "orphan" notes.
+  - Scans for the `> [!contradiction]` callout, which the agent injects when new sources conflict with existing wiki knowledge.
 
 ### 4. Generic Notion Migration & Curation Pipeline (`curate_notion_import.py`)
 A parameterizable batch-migration and curation system that ingests imported Notion folder contents:

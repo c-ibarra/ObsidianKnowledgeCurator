@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.3.0] - 2026-06-25
+
+### Added
+- **`scripts/sync_vault.py`**: A unified sync script that updates category/series Master Plans and executes the vault linter sequentially. Accepts a `--target-kb` flag and forwards it to child scripts.
+- ** Fleshed out `--find <query>` command in `scripts/knowledge_commands.py`**: Performs fast, case-insensitive note name substring matching across the vault, printing matching nodes as wikilinks along with relative paths. Excludes config folders like `.obsidian` and `.git`.
+- **Graphify Query Skill**: Added `.agent/skills/graphify-query/SKILL.md` to document how to query the local knowledge graph using `graphifyy`.
+
+### Fixed
+- **Dynamic Import bug in `knowledge_commands.py`**: Fixed a crash where the script failed to dynamically load `call_gemini` from the non-existent `curate_workflow.py` by redirecting it to `curate_notion_import.py`.
+
+### Changed
+- **Adaptive Ingestion Policy**: Documented density control rules in `GEMINI.md` to avoid redundant stubs and promote incremental wiki updates.
+
 ## [2.2.0] - 2026-06-11
 
 ### Added
