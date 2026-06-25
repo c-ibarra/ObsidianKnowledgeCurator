@@ -12,16 +12,16 @@ PROJECT_DIR = Path(__file__).parent.parent
 VAULT_BASE = Path(os.environ.get("OBSIDIAN_VAULT_PATH", "/Users/carlosibarra/Library/CloudStorage/OneDrive-Personal/Obsidian"))
 AI_ENGINEER_DIR = VAULT_BASE / "dataScienceKnowledgeBase" / "AI Engineer"
 
-# Assume curate_workflow has call_gemini
+# Assume curate_notion_import has call_gemini
 try:
-    from curate_workflow import call_gemini
+    from curate_notion_import import call_gemini
 except ImportError:
     # Fallback to importing dynamically
     import importlib.util
-    spec = importlib.util.spec_from_file_location("curate_workflow", str(PROJECT_DIR / "scripts" / "curate_workflow.py"))
-    curate_workflow = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(curate_workflow)
-    call_gemini = curate_workflow.call_gemini
+    spec = importlib.util.spec_from_file_location("curate_notion_import", str(PROJECT_DIR / "scripts" / "curate_notion_import.py"))
+    curate_notion_import = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(curate_notion_import)
+    call_gemini = curate_notion_import.call_gemini
 
 # ==============================================================================
 # COMMANDS LOGIC
@@ -114,12 +114,39 @@ Be blunt. Catch self-deception.
     result = call_gemini(prompt)
     print("\n=== DRIFT RESULT ===")
     print(result)
+def run_find(query: str):
+    print(f"Searching vault for notes matching: '{query}'...")
+    query_lower = query.lower()
+    matches = []
+    
+    if VAULT_BASE.exists():
+        for root, dirs, files in os.walk(VAULT_BASE):
+            if any(p in root for p in ["dswok", ".obsidian", ".git", ".trash", ".smart-env"]):
+                continue
+            for file in files:
+                if file.endswith(".md"):
+                    file_name_no_ext = file[:-3]
+                    if query_lower in file_name_no_ext.lower():
+                        file_path = Path(root) / file
+                        rel_path = file_path.relative_to(VAULT_BASE)
+                        matches.append((file_name_no_ext, rel_path))
+                        
+    if not matches:
+        print("No matching notes found.")
+        return
+        
+    print(f"\nFound {len(matches)} matching note(s):")
+    print("--------------------------------------------------------------------------------")
+    for name, rel_path in matches:
+        print(f"- [[{name}]] -> {rel_path}")
+    print("--------------------------------------------------------------------------------")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Advanced Knowledge Commands for Obsidian LLM Wiki")
     parser.add_argument("--trace", type=str, help="Run /trace on a specific topic")
     parser.add_argument("--emerge", action="store_true", help="Run /emerge to find implied ideas")
     parser.add_argument("--drift", action="store_true", help="Run /drift to compare intentions vs actions")
+    parser.add_argument("--find", type=str, help="Search the vault for matching note names")
     
     args = parser.parse_args()
     
@@ -129,5 +156,7 @@ if __name__ == "__main__":
         run_emerge()
     elif args.drift:
         run_drift()
+    elif args.find:
+        run_find(args.find)
     else:
         parser.print_help()

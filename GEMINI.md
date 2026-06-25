@@ -260,6 +260,21 @@ Source: dataScienceKnowledgeBase/AI Engineer/raw/Claude Code/Channel — Video T
 Concept: software engineer/wiki/Hexagonal Architecture.md
 ```
 
+### 🧠 ADAPTIVE INGESTION POLICY (Wiki Density Control)
+To prevent the `wiki/` zone from accumulating redundant, stub, or low-value concept pages, enforce the following adaptive policy:
+1. **Immediate Raw Ingestion**: Always save the complete source note immediately in the `raw/` zone (Zone 1) following naming conventions.
+2. **Concept Check**: Before creating a new page in the `wiki/` zone (Zone 2), search if the concept already exists under a similar or related name. Run the fast local find command:
+   ```bash
+   uv run python scripts/knowledge_commands.py --find "<concept_name>"
+   ```
+3. **Incremental Wiki Update**:
+   - **Update First**: If the concept note exists, update it. Do not create duplicates.
+   - **Evaluate Density**: Only create a *new* wiki page if the concept is of high architectural significance, is referenced multiple times, or is explicitly requested. If not, link to existing related concepts (e.g., linking a specific RAG sub-technique to `[[HybridSearchAdvantage]]` or `[[QueryTransformation]]` rather than making a stub page).
+   - **Consolidated Sync**: After any note ingestion or modifications, run the unified sync script to rebuild plans and verify integrity:
+     ```bash
+     uv run python scripts/sync_vault.py
+     ```
+
 ---
 
 ## STEP 4 — Validate with `superpowers`
