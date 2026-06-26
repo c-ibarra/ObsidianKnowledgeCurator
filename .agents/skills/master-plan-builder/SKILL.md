@@ -1,6 +1,6 @@
 ---
 name: master-plan-builder
-description: Use this skill when the user wants to compile, rebuild, or update the logical Master Plan index files of their Obsidian vault categories (such as AI Engineer or Machine Learning). Triggers include "update master plan", "rebuild master plan", "actualizar master plan", "regenerar mapa de navegacion", "reconstruir indice de notas".
+description: Use this skill when the user wants to compile, rebuild, or update the logical Master Plan index files of their Obsidian vault categories (such as AI Engineer or Machine Learning). Triggers include "update master plan", "rebuild master plan", "regenerate navigation map", "rebuild notes index".
 ---
 
 # Master Plan Builder Skill

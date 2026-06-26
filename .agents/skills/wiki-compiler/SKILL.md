@@ -1,6 +1,6 @@
 ---
 name: wiki-compiler
-description: Use this skill when the user wants to compile, extract, or batch-process technical concepts from raw curated notes and write/update them in the central wiki of the Obsidian vault. Triggers include "compile vault wiki", "run wiki extractor", "extraer conceptos de notas", "compilar wiki de obsidian", "batch extract concepts".
+description: Use this skill when the user wants to compile, extract, or batch-process technical concepts from raw curated notes and write/update them in the central wiki of the Obsidian vault. Triggers include "compile vault wiki", "run wiki extractor", "extract concepts from notes", "compile obsidian wiki", "batch extract concepts".
 ---
 
 # Wiki Compiler Skill

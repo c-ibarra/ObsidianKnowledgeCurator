@@ -1,6 +1,6 @@
 ---
 name: vault-linter
-description: Use this skill when the user wants to audit, lint, or check the health of their Obsidian vault, including broken wikilinks, orphan notes, or contradictions. Triggers include "run vault linter", "check vault health", "auditar mi vault", "revisar enlaces rotos", "buscar notas huerfanas", "linter de obsidian".
+description: Use this skill when the user wants to audit, lint, or check the health of their Obsidian vault, including broken wikilinks, orphan notes, or contradictions. Triggers include "run vault linter", "check vault health", "audit my vault", "review broken links", "search orphan notes", "obsidian linter".
 ---
 
 # Vault Linter Skill

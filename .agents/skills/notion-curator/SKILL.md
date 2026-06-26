@@ -1,6 +1,6 @@
 ---
 name: notion-curator
-description: Use this skill when the user wants to curate, import, or migrate folders or files imported from Notion into the structured zones (raw and wiki) of the Obsidian vault. Triggers include "import Notion folder", "curate Notion imported files", "procesar nuevo material de Notion", "migrar carpeta Notion", "curar importación de Notion".
+description: Use this skill when the user wants to curate, import, or migrate folders or files imported from Notion into the structured zones (raw and wiki) of the Obsidian vault. Triggers include "import Notion folder", "curate Notion imported files", "process new Notion material", "migrate Notion folder", "curate Notion import".
 ---
 
 # Notion Curator Skill

@@ -39,7 +39,7 @@ without breaking its current structure.
 5. **`canvas-design`** → for exportable infographics or posters (.png / .pdf).
 6. **`theme-factory`** → to apply visual themes to existing artifacts.
 
-### Native Antigravity Vault Skills (in `.agent/skills/`)
+### Native Antigravity Vault Skills (in `.agents/skills/`)
 7. **`notion-curator`** → Autonomous, keyless curation and migration of imported Notion notes.
 8. **`vault-linter`** → Recursive, local check for orphan notes, dead wikilinks, and knowledge contradictions.
 9. **`master-plan-builder`** → Dynamic auto-indexing and regeneration of Category Master Plans.

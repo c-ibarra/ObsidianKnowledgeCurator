@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """
-ytdlp_mcp — MCP server (stdio) para descargar transcripts de YouTube via yt-dlp.
+ytdlp_mcp — MCP server (stdio) to download YouTube transcripts via yt-dlp.
 
-Herramientas:
-  - ytdlp_get_transcript        → transcript de un video individual
-  - ytdlp_get_playlist          → transcripts de toda una playlist
-  - ytdlp_list_playlist_videos  → lista los videos de una playlist sin descargar
+Tools:
+  - ytdlp_get_transcript        → transcript of an individual video
+  - ytdlp_get_playlist          → transcripts of an entire playlist
+  - ytdlp_list_playlist_videos  → lists the videos of a playlist without downloading
 """
 
 import json
@@ -24,14 +24,14 @@ from pydantic import BaseModel, Field, ConfigDict
 
 mcp = FastMCP("ytdlp_mcp")
 
-YTDLP_BIN = "yt-dlp" # Actualizado a usar la version del PATH o del entorno UV
+YTDLP_BIN = "yt-dlp" # Updated to use version from PATH or UV environment
 
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
 
 def _clean_vtt(vtt_content: str) -> str:
-    """Convierte un archivo VTT a texto plano limpio y deduplicado."""
+    """Converts a VTT file to clean and deduplicated plain text."""
     content = re.sub(r'WEBVTT\n.*?\n\n', '', vtt_content, flags=re.DOTALL)
     content = re.sub(
         r'\d{2}:\d{2}:\d{2}[.,]\d{3}\s*-->\s*\d{2}:\d{2}:\d{2}[.,]\d{3}[^\n]*\n',
@@ -52,8 +52,8 @@ def _clean_vtt(vtt_content: str) -> str:
 
 def _run_ytdlp_subtitles(url: str, lang: str, output_dir: Path) -> dict:
     """
-    Ejecuta yt-dlp para descargar subtítulos.
-    Retorna dict: {video_id: {title, url, transcript, lang_found}}
+    Runs yt-dlp to download subtitles.
+    Returns dict: {video_id: {title, url, transcript, lang_found}}
     """
     cmd = [
         YTDLP_BIN,
@@ -72,7 +72,7 @@ def _run_ytdlp_subtitles(url: str, lang: str, output_dir: Path) -> dict:
         cmd, capture_output=True, text=True, cwd=str(output_dir), timeout=120
     )
 
-    # Parsear info de los videos desde stdout
+    # Parse video info from stdout
     videos = {}
     for line in result.stdout.strip().split('\n'):
         if '|||' in line:
@@ -90,17 +90,17 @@ def _run_ytdlp_subtitles(url: str, lang: str, output_dir: Path) -> dict:
                 }
 
     if not videos and result.returncode != 0:
-        raise RuntimeError(f"yt-dlp falló: {result.stderr[:300]}")
+        raise RuntimeError(f"yt-dlp failed: {result.stderr[:300]}")
 
-    # Leer archivos VTT generados y asignar a cada video
+    # Read generated VTT files and assign to each video
     for vtt_file in output_dir.glob('*.vtt'):
         try:
             content = vtt_file.read_text(encoding='utf-8')
             clean = _clean_vtt(content)
-            stem = vtt_file.stem  # ej: "1-KSItlTAsMsk.en"
-            # Detectar lang del nombre del archivo
+            stem = vtt_file.stem  # e.g. "1-KSItlTAsMsk.en"
+            # Detect lang from file name
             lang_found = stem.split('.')[-1] if '.' in stem else lang
-            # Buscar a qué video pertenece
+            # Find which video it belongs to
             for vid_id in videos:
                 if vid_id in stem:
                     videos[vid_id]['transcript'] = clean
@@ -109,10 +109,10 @@ def _run_ytdlp_subtitles(url: str, lang: str, output_dir: Path) -> dict:
         except Exception as e:
             continue
 
-    # Marcar videos sin transcript
+    # Mark videos without transcripts
     for vid_id, info in videos.items():
         if not info['transcript']:
-            info['error'] = 'Transcript no disponible (video sin subtítulos o privado)'
+            info['error'] = 'Transcript not available (video without subtitles or private)'
 
     return videos
 
@@ -126,12 +126,12 @@ class TranscriptInput(BaseModel):
 
     url: str = Field(
         ...,
-        description="URL del video de YouTube. Ej: https://www.youtube.com/watch?v=KSItlTAsMsk",
+        description="YouTube video URL. E.g. https://www.youtube.com/watch?v=KSItlTAsMsk",
         min_length=10
     )
     lang: str = Field(
         default='en',
-        description="Código de idioma del subtítulo. Ej: 'en', 'es', 'fr'. Default: 'en'",
+        description="Subtitle language code. E.g. 'en', 'es', 'fr'. Default: 'en'",
         min_length=2,
         max_length=10
     )
@@ -142,18 +142,18 @@ class PlaylistInput(BaseModel):
 
     url: str = Field(
         ...,
-        description="URL de la playlist de YouTube. Ej: https://www.youtube.com/playlist?list=PL...",
+        description="YouTube playlist URL. E.g. https://www.youtube.com/playlist?list=PL...",
         min_length=10
     )
     lang: str = Field(
         default='en',
-        description="Código de idioma del subtítulo. Default: 'en'",
+        description="Subtitle language code. Default: 'en'",
         min_length=2,
         max_length=10
     )
     max_videos: Optional[int] = Field(
         default=None,
-        description="Número máximo de videos a procesar. None = todos. Útil para playlists grandes.",
+        description="Maximum number of videos to process. None = all. Useful for large playlists.",
         ge=1,
         le=200
     )
@@ -164,7 +164,7 @@ class ListPlaylistInput(BaseModel):
 
     url: str = Field(
         ...,
-        description="URL de la playlist de YouTube.",
+        description="YouTube playlist URL.",
         min_length=10
     )
 
@@ -176,7 +176,7 @@ class ListPlaylistInput(BaseModel):
 @mcp.tool(
     name="ytdlp_get_transcript",
     annotations={
-        "title": "Obtener transcript de un video de YouTube",
+        "title": "Get transcript for a YouTube video",
         "readOnlyHint": True,
         "destructiveHint": False,
         "idempotentHint": True,
@@ -185,24 +185,24 @@ class ListPlaylistInput(BaseModel):
 )
 async def ytdlp_get_transcript(params: TranscriptInput) -> str:
     """
-    Descarga y retorna el transcript (subtítulos) de un video de YouTube.
+    Downloads and returns the transcript (subtitles) of a YouTube video.
 
-    Usa yt-dlp para descargar subtítulos automáticos o manuales en el idioma
-    especificado, limpia el formato VTT y retorna texto plano listo para procesar.
+    Uses yt-dlp to download auto-generated or manual subtitles in the specified
+    language, cleans the VTT formatting, and returns plain text ready for processing.
 
     Args:
         params (TranscriptInput):
-            - url (str): URL del video de YouTube
-            - lang (str): Código de idioma ('en', 'es', 'fr'...). Default: 'en'
+            - url (str): YouTube video URL
+            - lang (str): Subtitle language code ('en', 'es', 'fr'...). Default: 'en'
 
     Returns:
-        str: JSON con:
-            - video_id (str): ID del video
-            - title (str): Título del video
-            - url (str): URL del video
-            - lang (str): Idioma encontrado
-            - transcript (str): Texto completo del transcript limpio
-            - error (str|null): Mensaje de error si no hay transcript disponible
+        str: JSON with:
+            - video_id (str): Video ID
+            - title (str): Video title
+            - url (str): Video URL
+            - lang (str): Found language
+            - transcript (str): Full clean transcript text
+            - error (str|null): Error message if no transcript is available
     """
     with tempfile.TemporaryDirectory() as tmp:
         tmp_path = Path(tmp)
@@ -213,11 +213,11 @@ async def ytdlp_get_transcript(params: TranscriptInput) -> str:
 
         if not videos:
             return json.dumps(
-                {"error": f"No se encontró ningún video en: {params.url}"},
+                {"error": f"No video found at: {params.url}"},
                 ensure_ascii=False, indent=2
             )
 
-        # Para un video individual, retornar el primero
+        # For a single video, return the first one
         vid_id, info = next(iter(videos.items()))
         result = {
             "video_id": vid_id,
@@ -234,7 +234,7 @@ async def ytdlp_get_transcript(params: TranscriptInput) -> str:
 @mcp.tool(
     name="ytdlp_get_playlist",
     annotations={
-        "title": "Obtener transcripts de una playlist completa de YouTube",
+        "title": "Get transcripts of a complete YouTube playlist",
         "readOnlyHint": True,
         "destructiveHint": False,
         "idempotentHint": True,
@@ -243,29 +243,29 @@ async def ytdlp_get_transcript(params: TranscriptInput) -> str:
 )
 async def ytdlp_get_playlist(params: PlaylistInput) -> str:
     """
-    Descarga y retorna los transcripts de todos los videos de una playlist de YouTube.
+    Downloads and returns the transcripts of all videos in a YouTube playlist.
 
-    Procesa cada video de la playlist en orden, descargando sus subtítulos automáticos
-    o manuales. Ideal para procesar cursos, series o colecciones de videos completas.
+    Processes each video in the playlist in order, downloading their auto-generated
+    or manual subtitles. Ideal for processing complete courses, series, or video collections.
 
     Args:
         params (PlaylistInput):
-            - url (str): URL de la playlist de YouTube
-            - lang (str): Código de idioma. Default: 'en'
-            - max_videos (int|None): Límite de videos a procesar. None = todos.
+            - url (str): YouTube playlist URL
+            - lang (str): Language code. Default: 'en'
+            - max_videos (int|None): Limit of videos to process. None = all.
 
     Returns:
-        str: JSON con:
-            - playlist_url (str): URL de la playlist procesada
-            - total_videos (int): Total de videos procesados
-            - lang (str): Idioma solicitado
-            - videos (list): Lista de objetos con video_id, title, url, transcript, error
-            - summary (dict): Estadísticas: total, con_transcript, sin_transcript
+        str: JSON with:
+            - playlist_url (str): Processed playlist URL
+            - total_videos (int): Total processed videos
+            - lang (str): Requested language
+            - videos (list): List of objects with video_id, title, url, transcript, error
+            - summary (dict): Statistics: total, with_transcript, without_transcript
     """
-    # Aplicar límite si se especificó
+    # Apply limit if specified
     url = params.url
     if params.max_videos:
-        # yt-dlp acepta --playlist-end para limitar
+        # yt-dlp accepts --playlist-end to limit
         cmd_extra = ['--playlist-end', str(params.max_videos)]
     else:
         cmd_extra = []
@@ -274,9 +274,9 @@ async def ytdlp_get_playlist(params: PlaylistInput) -> str:
         tmp_path = Path(tmp)
         try:
             if cmd_extra:
-                # Inyectar flags extra antes de la URL
+                # Inject extra flags before the URL
                 import shlex
-                # Usamos subprocess directo para pasar flags adicionales
+                # Use direct subprocess to pass additional flags
                 cmd = [
                     YTDLP_BIN,
                     '--write-auto-sub', '--write-sub',
@@ -321,7 +321,7 @@ async def ytdlp_get_playlist(params: PlaylistInput) -> str:
 
                 for vid_id, info in videos.items():
                     if not info['transcript']:
-                        info['error'] = 'Transcript no disponible'
+                        info['error'] = 'Transcript not available'
             else:
                 videos = _run_ytdlp_subtitles(url, params.lang, tmp_path)
 
@@ -360,7 +360,7 @@ async def ytdlp_get_playlist(params: PlaylistInput) -> str:
 @mcp.tool(
     name="ytdlp_list_playlist_videos",
     annotations={
-        "title": "Listar videos de una playlist sin descargar transcripts",
+        "title": "List videos in a playlist without downloading transcripts",
         "readOnlyHint": True,
         "destructiveHint": False,
         "idempotentHint": True,
@@ -369,20 +369,20 @@ async def ytdlp_get_playlist(params: PlaylistInput) -> str:
 )
 async def ytdlp_list_playlist_videos(params: ListPlaylistInput) -> str:
     """
-    Lista los videos de una playlist de YouTube sin descargar subtítulos.
+    Lists the videos of a YouTube playlist without downloading subtitles.
 
-    Útil para explorar el contenido de una playlist antes de decidir qué
-    videos procesar con ytdlp_get_transcript o ytdlp_get_playlist.
+    Useful for exploring a playlist's content before deciding which videos
+    to process with ytdlp_get_transcript or ytdlp_get_playlist.
 
     Args:
         params (ListPlaylistInput):
-            - url (str): URL de la playlist de YouTube
+            - url (str): YouTube playlist URL
 
     Returns:
-        str: JSON con:
-            - playlist_url (str): URL de la playlist
-            - total_videos (int): Número total de videos
-            - videos (list): Lista con index, video_id, title, url de cada video
+        str: JSON with:
+            - playlist_url (str): Playlist URL
+            - total_videos (int): Total number of videos
+            - videos (list): List with index, video_id, title, url for each video
     """
     cmd = [
         YTDLP_BIN,
@@ -395,7 +395,7 @@ async def ytdlp_list_playlist_videos(params: ListPlaylistInput) -> str:
 
     if result.returncode != 0 and not result.stdout:
         return json.dumps(
-            {"error": f"Error al listar playlist: {result.stderr[:300]}"},
+            {"error": f"Error listing playlist: {result.stderr[:300]}"},
             ensure_ascii=False, indent=2
         )
 
@@ -423,4 +423,4 @@ async def ytdlp_list_playlist_videos(params: ListPlaylistInput) -> str:
 # ---------------------------------------------------------------------------
 
 if __name__ == "__main__":
-    mcp.run()  # stdio transport por defecto
+    mcp.run()  # stdio transport by default

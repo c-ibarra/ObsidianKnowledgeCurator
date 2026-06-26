@@ -1,6 +1,6 @@
 ---
 name: note-review
-description: Use this skill when the user wants to review, improve, audit, or clean up notes in their vault. Triggers include "review this note", "improve my note on", "audit my vault", "find stale notes", "vault health check", "revisa esta nota", "mejora mis notas", "audita el vault", "health check del vault", "notas desactualizadas".
+description: Use this skill when the user wants to review, improve, audit, or clean up notes in their vault. Triggers include "review this note", "improve my note on", "audit my vault", "find stale notes", "vault health check".
 ---
 
 # Note Review Skill

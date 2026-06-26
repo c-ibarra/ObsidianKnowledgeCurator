@@ -104,10 +104,10 @@ To prevent the `wiki/` zone from accumulating redundant, stub, or low-value conc
 
 ### 2. Advanced Vault Reasoning (`knowledge_commands.py`)
 Because the knowledge is structured, the agent can perform deep-vault operations:
-- `/trace`: Reconstructs the chronological evolution of an idea across the vault.
-- `/emerge`: Scans recent notes to find implicit conclusions or recurring patterns the user hasn't explicitly documented.
-- `/drift`: Compares stated intentions in older notes with actual recorded behavior in recent notes.
-- `--find <query>`: Performs a fast, case-insensitive note-name substring search, outputting matches as wikilinks and relative file paths.
+- `/okc-trace`: Reconstructs the chronological evolution of an idea across the vault.
+- `/okc-emerge`: Scans recent notes to find implicit conclusions or recurring patterns the user hasn't explicitly documented.
+- `/okc-drift`: Compares stated intentions in older notes with actual recorded behavior in recent notes.
+- `/okc-find <query>`: Performs a fast, case-insensitive note-name substring search, outputting matches as wikilinks and relative file paths.
 
 ### 3. Continuous Integration & Sync (`sync_vault.py`, `vault_linter.py`)
 To preserve index alignment and check graph health in one step:

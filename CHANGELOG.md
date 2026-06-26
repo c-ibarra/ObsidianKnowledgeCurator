@@ -10,7 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - **`scripts/sync_vault.py`**: A unified sync script that updates category/series Master Plans and executes the vault linter sequentially. Accepts a `--target-kb` flag and forwards it to child scripts.
 - ** Fleshed out `--find <query>` command in `scripts/knowledge_commands.py`**: Performs fast, case-insensitive note name substring matching across the vault, printing matching nodes as wikilinks along with relative paths. Excludes config folders like `.obsidian` and `.git`.
-- **Graphify Query Skill**: Added `.agent/skills/graphify-query/SKILL.md` to document how to query the local knowledge graph using `graphifyy`.
+- **Graphify Query Skill**: Added `.agents/skills/graphify-query/SKILL.md` to document how to query the local knowledge graph using `graphifyy`.
 
 ### Fixed
 - **Dynamic Import bug in `knowledge_commands.py`**: Fixed a crash where the script failed to dynamically load `call_gemini` from the non-existent `curate_workflow.py` by redirecting it to `curate_notion_import.py`.
@@ -32,7 +32,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - **Generic Notion Curation Pipeline**: Refactored `curate_notion_import.py` to support fully parameterized command line execution (`--notion-dir`, `--target-kb`, `--course-name`) for any course or knowledge base.
-- **Native Antigravity SDK Skills**: Added specialized native skills under `.agent/skills/` (`notion-curator`, `vault-linter`, `master-plan-builder`, `wiki-compiler`) enabling keyless, prompt-less autonomous execution in background agent contexts.
+- **Native Antigravity SDK Skills**: Added specialized native skills under `.agents/skills/` (`notion-curator`, `vault-linter`, `master-plan-builder`, `wiki-compiler`) enabling keyless, prompt-less autonomous execution in background agent contexts.
 
 ### Changed
 - Replaced monolithic, hardcoded script values with dynamic system-prompt construction using `{TARGET_KB}` and `{COURSE_NAME}` references.
@@ -43,7 +43,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - **Staging/Drafting Execution Pattern**: Seamlessly write temporary drafts locally to `temp_note.md` in workspace before final secure vault copy commands.
 - **Rule Zero Grounding**: Automatic google search lookups for video IDs before vault writing to prevent metadata drift.
-- **Dynamic preferredModel settings**: Unified setting inside `.agent/settings.json` referencing Gemini 3.1 Pro.
+- **Dynamic preferredModel settings**: Unified setting inside `.agents/settings.json` referencing Gemini 3.1 Pro.
 - **Repository Structure Setup**: Automatic generation of `/docs`, `/agents`, `/prompts`, `/connectors`, `/configs`, `/memory`, and `/tests` directories.
 
 ### Changed

@@ -1,6 +1,6 @@
 ---
 name: daily-note
-description: Use this skill when the user wants to create, update, or review their daily note. Triggers include "create today's daily note", "update my daily note", "add to today's note", "log this to today", "nota diaria", "agrega al daily", "loguea esto hoy", "qué tengo en el daily de hoy".
+description: Use this skill when the user wants to create, update, or review their daily note. Triggers include "create today's daily note", "update my daily note", "add to today's note", "log this to today", "daily note", "add to daily", "log this today", "what do I have in today's daily".
 ---
 
 # Daily Note Skill

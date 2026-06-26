@@ -22,7 +22,7 @@ We needed a highly modular, decoupled, and production-ready agent architecture t
 ## Considered Options
 
 1.  **Option A**: Maintain the monolithic Claude Project setup with advanced prompt-engineering hacks.
-2.  **Option B**: Refactor into **Antigravity 2.0 SDK**, decoupling configuration (`.agent/settings.json`), core system prompts (`GEMINI.md`), and reusable encapsulated capabilities (`.agent/skills/`).
+2.  **Option B**: Refactor into **Antigravity 2.0 SDK**, decoupling configuration (`.agents/settings.json`), core system prompts (`GEMINI.md`), and reusable encapsulated capabilities (`.agents/skills/`).
 
 ## Decision Outcome
 
@@ -33,7 +33,7 @@ We selected **Option B (Antigravity 2.0 SDK Refactoring)** because it solves int
 ## Consequences
 
 *   **Positive**:
-    *   **High Modularity**: Adding a new skill (e.g. Notion integration) simply requires creating a directory in `.agent/skills/` without touching `GEMINI.md`.
+    *   **High Modularity**: Adding a new skill (e.g. Notion integration) simply requires creating a directory in `.agents/skills/` without touching `GEMINI.md`.
     *   **Robust Scrapes**: YouTube transcripts are dynamically downloaded via Python wrappers (`youtube-transcript-api` in `uv run`), bypassing scrape blocks.
     *   **Staging Isolation**: Complex writes are drafted in a local `temp_note.md` workspace buffer before final copying, protecting target file systems from encoding corruptions.
 *   **Neutral**:

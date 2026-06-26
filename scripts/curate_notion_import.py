@@ -122,37 +122,37 @@ def curate_single_file(file_path: Path, dry_run: bool) -> tuple[str, bool, str]:
             
         # 1. Note Curation Pass
         prompt = f"""
-Actúas como un Knowledge Architect experto en Obsidian e Ingeniería de {TARGET_KB}.
-Tu objetivo es procesar la siguiente nota importada de Notion sobre {COURSE_NAME}, reestructurarla bajo las estrictas convenciones del vault del usuario y retornar el markdown formateado.
+Act as an expert Knowledge Architect in Obsidian and {TARGET_KB} Engineering.
+Your goal is to process the following imported Notion note about {COURSE_NAME}, restructure it under the user's strict vault conventions, and return the formatted markdown.
 
-Detalles de la Nota:
-- Título original: {original_title}
-- Sección original: {cleaned_section}
+Note Details:
+- Original Title: {original_title}
+- Original Section: {cleaned_section}
 
-Requisitos del Formato de Salida:
-1. El primer renglón del output debe ser la clasificación de categoría exacta del vault en este formato:
+Output Format Requirements:
+1. The first line of the output must be the exact category classification of the vault in this format:
 CATEGORY: {COURSE_NAME}/{cleaned_section}
 
-2. A partir de la segunda línea, devuelve la nota estructurada exactamente así:
-- Un título único H1 en inglés (puedes limpiar prefijos como "FEML - XX - " del H1 si lo consideras apropiado, pero mantén el título temático claro).
-- Un bloque de cita de metadatos limpio (blockquote) con:
+2. Starting from the second line, return the structured note exactly like this:
+- A unique H1 title in English (you can clean prefixes like "FEML - XX - " from the H1 if appropriate, but keep the thematic title clear).
+- A clean metadata blockquote with:
   > **Source:** Notion Course
   > **Author:** Carlos Ibarra · **Date:** May 2026
   > **Type:** course note
   > **Tags:** #no-read-yet
-- Una sección "## 📌 Key Takeaways" con puntos numerados de los conceptos más importantes. Máximo uso de emojis en esta sección para resaltar insights.
-- Secciones temáticas ordenadas (## 1. Topic, ## 2. Topic) con el desarrollo técnico detallado de la nota, conservando código python, ventajas, desventajas e implementaciones prácticas.
-- Sección "## Flashcards" con las preguntas y respuestas clave formateadas en inglés:
+- A "## 📌 Key Takeaways" section with numbered points of the most important concepts. Maximum use of emojis in this section to highlight insights.
+- Ordered thematic sections (## 1. Topic, ## 2. Topic) with detailed technical development of the note, preserving python code, advantages, disadvantages, and practical implementations.
+- "## Flashcards" section with key questions and answers formatted in English:
   1. **Q:** [Question]? → **A:** [Synthetic and clear answer]
-- Sección "## Glossary" con términos técnicos no obvios en formato:
+- "## Glossary" section with non-obvious technical terms formatted as:
   - **[Term]**: [Definition]
-- Sección "## Related" con enlaces de wikilinks sugeridos a otras notas del curso o conceptos.
-- REGLAS CRÍTICAS:
-  - NUNCA uses YAML frontmatter.
-  - NUNCA uses emojis fuera de la sección "## 📌 Key Takeaways".
-  - Mantén el idioma en inglés.
+- "## Related" section with suggested wikilinks to other course notes or concepts.
+- CRITICAL RULES:
+  - NEVER use YAML frontmatter.
+  - NEVER use emojis outside the "## 📌 Key Takeaways" section.
+  - Keep the language in English.
 
-Contenido de la nota original:
+Original note content:
 \"\"\"
 {content}
 \"\"\"
@@ -177,14 +177,14 @@ Contenido de la nota original:
         
         # 2. Concept Compilation Pass (Wiki)
         wiki_prompt = f"""
-Actúas como un Compilador de Conocimiento. Lee la siguiente nota curada:
+Act as a Knowledge Compiler. Read the following curated note:
 
 {note_content[:15000]}
 
-Identifica de 3 a 5 conceptos técnicos fundamentales explicados detalladamente en este texto.
-Para cada concepto, provee una explicación sintetizada y profunda en inglés basada ÚNICAMENTE en este texto.
-Formatea tu salida estrictamente como un objeto JSON crudo en inglés donde las llaves sean los nombres de los conceptos (en formato Camel Case o Pascal Case sin espacios, ej. "TargetEncoding", "ImputacionMediaMediana") y los valores sean las explicaciones detalladas.
-No incluyas bloques de markdown como ```json, solo el objeto JSON crudo.
+Identify 3 to 5 fundamental technical concepts explained in detail in this text.
+For each concept, provide a deep, synthesized explanation in English based ONLY on this text.
+Format your output strictly as a raw JSON object in English where the keys are the concept names (in Camel Case or Pascal Case with no spaces, e.g. "TargetEncoding", "MeanMedianImputation") and the values are the detailed explanations.
+Do not include markdown blocks like ```json, only the raw JSON object.
 """
         wiki_response = call_gemini(wiki_prompt)
         try:
@@ -252,8 +252,8 @@ def parse_curated_note_metadata(file_path: Path):
         return None
 
     author = "Carlos Ibarra"
-    date = "Mayo 2026"
-    content_type = "nota de curso"
+    date = "May 2026"
+    content_type = "course note"
 
     for line in blockquote_lines:
         if match := re.search(r'\b(?:Author|Autor)\s*:\s*(.*)', line, re.IGNORECASE):
@@ -315,16 +315,16 @@ def rebuild_ml_master_plan():
     
     category_name = ML_DIR.name
     if category_name == "Machine Learning":
-        description = """Colección de recursos sobre Machine Learning: algoritmos, tuning de modelos, evaluación, feature engineering y mejores prácticas. Cubre tanto ML clásico (boosting, árboles de decisión, regresión) como técnicas avanzadas de optimización y preprocesamiento de datos."""
-        themes_section = """- Análisis de características de variables (cardinalidad, distribuciones, outliers)
-- Imputación univariante y multivariante (KNN, MICE, missForest)
-- Encoding de variables categóricas (One-Hot, Ordinal, Target Encoding con suavizado, WoE)
-- Transformaciones de variables para normalidad (Log, Box-Cox, Yeo-Johnson)
-- Discretización básica y avanzada (Equal-Width, Equal-Frequency, Decision Tree binning)
-- Escalado de características (Standardization, Min-Max, Robust Scaling)"""
+        description = """Collection of resources on Machine Learning: algorithms, model tuning, evaluation, feature engineering, and best practices. Covers both classic ML (boosting, decision trees, regression) and advanced optimization and data preprocessing techniques."""
+        themes_section = """- Feature analysis of variables (cardinality, distributions, outliers)
+- Univariate and multivariate imputation (KNN, MICE, missForest)
+- Categorical variable encoding (One-Hot, Ordinal, Target Encoding with smoothing, WoE)
+- Variable transformations for normality (Log, Box-Cox, Yeo-Johnson)
+- Basic and advanced discretization (Equal-Width, Equal-Frequency, Decision Tree binning)
+- Feature scaling (Standardization, Min-Max, Robust Scaling)"""
     else:
-        description = f"Colección de recursos, notas y guías sobre {category_name} curadas de forma automatizada por el Knowledge Curator."
-        themes_section = f"- Notas y guías técnicas de {category_name}\n- Conceptos e implementaciones prácticas"
+        description = f"Collection of resources, notes, and guides on {category_name} automatically curated by the Knowledge Curator."
+        themes_section = f"- Technical notes and guides for {category_name}\n- Practical concepts and implementations"
     
     # Let's read the existing Master Plan to preserve other sections if it exists
     original_content = ""

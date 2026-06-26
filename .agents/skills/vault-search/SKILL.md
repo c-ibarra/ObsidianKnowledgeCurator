@@ -1,6 +1,6 @@
 ---
 name: vault-search
-description: Use this skill when the user wants to find, retrieve, or locate notes in their Obsidian vault. Triggers include "find notes about", "search my vault for", "what do I have on", "do I have anything on", "busca en mi vault", "encuentra notas sobre", "qué tengo sobre", "busca en el vault".
+description: Use this skill when the user wants to find, retrieve, or locate notes in their Obsidian vault. Triggers include "find notes about", "search my vault for", "what do I have on", "do I have anything on".
 ---
 
 # Vault Search Skill

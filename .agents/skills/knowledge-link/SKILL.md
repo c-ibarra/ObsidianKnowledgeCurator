@@ -1,6 +1,6 @@
 ---
 name: knowledge-link
-description: Use this skill when the user wants to find connections between notes, add wikilinks, discover orphaned notes, build a Map of Content (MOC), update a Master Plan, or strengthen the vault link graph. Triggers include "link these notes", "find related notes", "find orphan notes", "build an index", "create a MOC", "update Master Plan", "conecta notas", "notas huérfanas", "crea un MOC", "actualiza el Master Plan".
+description: Use this skill when the user wants to find connections between notes, add wikilinks, discover orphaned notes, build a Map of Content (MOC), update a Master Plan, or strengthen the vault link graph. Triggers include "link these notes", "find related notes", "find orphan notes", "build an index", "create a MOC", "update Master Plan".
 ---
 
 # Knowledge Link Skill

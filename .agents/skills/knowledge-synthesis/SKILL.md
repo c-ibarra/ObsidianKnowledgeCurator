@@ -1,6 +1,6 @@
 ---
 name: knowledge-synthesis
-description: Use this skill when the user wants to synthesize, summarize, or combine knowledge from multiple notes into a single coherent output. Triggers include "synthesize my notes on", "combine these notes", "create an overview of", "qué dicen mis notas sobre", "sintetiza mis notas sobre", "combina estas notas", "resumen de todo lo que tengo sobre".
+description: Use this skill when the user wants to synthesize, summarize, or combine knowledge from multiple notes into a single coherent output. Triggers include "synthesize my notes on", "combine these notes", "create an overview of", "what do my notes say about", "synthesize my notes on", "combine these notes", "summary of everything I have on".
 ---
 
 # Knowledge Synthesis Skill

@@ -1,6 +1,6 @@
 ---
 name: note-capture
-description: Use this skill when the user wants to capture a new idea, article, quote, meeting note, or any raw content into the Obsidian vault. Triggers include "capture this", "save this to my vault", "add a note about", "turn this into a note", "guarda esto", "captura esta idea", "crea una nota sobre".
+description: Use this skill when the user wants to capture a new idea, article, quote, meeting note, or any raw content into the Obsidian vault. Triggers include "capture this", "save this to my vault", "add a note about", "turn this into a note".
 ---
 
 # Note Capture Skill
