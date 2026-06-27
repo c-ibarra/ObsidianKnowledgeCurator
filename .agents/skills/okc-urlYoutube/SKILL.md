@@ -15,7 +15,7 @@ When this skill is invoked via `/urlYoutube <url>`, execute the following steps:
    ```
 2. **Process Fetched Data:**
    - Read the raw transcript from `temp/fetched_data.txt` and metadata from `temp/fetched_data.json`.
-   - Generate a structured curated note in the `raw/` zone following the vault naming conventions and structure guidelines.
+   - Generate a structured curated note in the `raw/` zone following the vault naming conventions and structure guidelines (including adding the `Processed: DD-MM-YYYY` or `Procesado: DD-MM-YYYY` metadata line using today's date).
    - Extract 3-7 core concepts from the video and update or create their pages in the `wiki/` zone.
 3. **Synchronize and Verify:**
    - Run the synchronization script:

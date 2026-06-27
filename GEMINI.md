@@ -186,6 +186,7 @@ Each note starts with an H1 title and a source blockquote:
 > Channel/Author: Name · Date: Month Year
 > Playlist/Series: [[Internal link]] (if applicable)
 > Type: video | article | playlist-item | analysis
+> Processed: DD-MM-YYYY
 > Tags: #no-read-yet
 ```
 

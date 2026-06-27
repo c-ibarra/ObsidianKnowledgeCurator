@@ -16,6 +16,7 @@ An autonomous, agentic knowledge compiler designed to maintain and synthesize a 
 ## 📖 Table of Contents
 - [Project Overview](#project-overview)
 - [Problem Statement](#problem-statement)
+- [Getting Started & Installation](#getting-started--installation)
 - [System Architecture](#system-architecture)
 - [The "Zone" Knowledge Architecture](#the-zone-knowledge-architecture)
 - [End-to-End Workflow](#end-to-end-workflow)
@@ -40,6 +41,102 @@ Knowledge workers and AI Engineers consume vast amounts of technical content (pa
 
 **The Solution:** 
 A headless automation pipeline that ingests content, parses transcripts, and utilizes a large-context model (Gemini 3.1 Pro) to actively rewrite, link, and maintain a local Obsidian Vault graph, separating raw sources from synthesized concepts.
+
+---
+
+## 🚀 Getting Started & Installation
+
+### 1. System Requirements
+
+This project runs locally and relies on Python 3.12+ and external command-line utilities.
+
+*   **Python Package Manager:** [uv](https://github.com/astral-sh/uv) (highly recommended for high-speed, isolated environment management).
+*   **Media Processing:** [ffmpeg](https://ffmpeg.org/) (required by `yt-dlp` to extract audio streams).
+*   **Local Transcription Fallback:** [Buzz CLI](https://github.com/chidiwilliams/buzz) (required for offline Whisper transcription fallback).
+
+---
+
+### 2. OS-Specific Requirements Installation
+
+#### 🍎 macOS (OS X)
+Install all prerequisites using [Homebrew](https://brew.sh/):
+```bash
+# Install uv and ffmpeg
+brew install uv ffmpeg
+
+# Install Buzz (GUI + CLI)
+brew install --cask buzz
+```
+*Note: The script expects the Buzz CLI executable at `/Applications/Buzz.app/Contents/MacOS/Buzz`.*
+
+#### 🪟 Windows
+Install all prerequisites using PowerShell and [winget](https://learn.microsoft.com/en-us/windows/package-manager/winget/):
+```powershell
+# Install uv and ffmpeg
+winget install astral-sh.uv
+winget install Gyan.FFmpeg
+
+# Install Buzz
+winget install --id Buzz
+```
+*Note: Make sure `ffmpeg` and `Buzz` (or the folder containing the `Buzz` CLI binary) are added to your system's `PATH` environment variable.*
+
+#### 🐧 Linux
+Install prerequisites using your system's package manager:
+
+**Ubuntu / Debian:**
+```bash
+# Install uv
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# Install ffmpeg
+sudo apt update && sudo apt install -y ffmpeg
+```
+
+**Fedora / RHEL:**
+```bash
+# Install uv
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# Install ffmpeg
+sudo dnf install -y ffmpeg
+```
+
+**Buzz Installation on Linux:**
+Download the Linux release AppImage or source compilation package from the [Buzz GitHub Releases](https://github.com/chidiwilliams/buzz/releases) page and place the executable under your `PATH`.
+
+---
+
+### 3. Project Setup
+
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/c-ibarra/obsidianKnowledgeCurator.git
+   cd obsidianKnowledgeCurator
+   ```
+
+2. **Sync Python dependencies:**
+   Using `uv`, run the following command to automatically install Python and create the virtual environment with all required libraries:
+   ```bash
+   uv sync
+   ```
+
+3. **Configure environment variables:**
+   Create a `.env` file in the project root:
+   ```bash
+   cp .env.example .env
+   ```
+   Edit the `.env` file to set your paths and keys:
+   ```env
+   OBSIDIAN_VAULT_PATH="/Users/carlosibarra/Library/CloudStorage/OneDrive-Personal/Obsidian"
+   GEMINI_API_KEY="your-gemini-api-key-here"
+   ```
+
+4. **Verify installation:**
+   Run the sync script to compile plans and check vault health:
+   ```bash
+   uv run python scripts/sync_vault.py
+   ```
 
 ---
 
@@ -98,8 +195,11 @@ To prevent the `wiki/` zone from accumulating redundant, stub, or low-value conc
 ## 🔄 End-to-End Workflow
 
 ### 1. Multi-Stage Ingestion Pipeline (`fetch_youtube_data.py`)
-1. **Extraction:** Automates `yt-dlp` and `youtube-transcript-api` to pull and clean VTT transcripts, saving them locally as JSON.
-2. **Raw Generation (Native):** The Antigravity agent natively reads the JSON file and generates a highly structured markdown summary (Key Takeaways, Flashcards, Glossary) saving it to the `raw/` zone.
+1. **Three-Tier Extraction:** Pulls video transcripts using a resilient three-tier fallback pipeline:
+   - *Tier 1:* Online transcripts via `youtube-transcript-api`.
+   - *Tier 2:* Auto-generated VTT subtitle downloads via `yt-dlp`.
+   - *Tier 3:* Offline fallback downloading the audio as MP3 via `yt-dlp` and transcribing it headlessly via the local **Buzz (Whisper) CLI**.
+2. **Raw Generation (Native):** The Antigravity agent natively reads the JSON metadata and transcript text, producing a highly structured markdown summary with an immutable source header blockquote, including the exact processing date (`Processed: DD-MM-YYYY`), key takeaways, flashcards, and glossaries.
 3. **Concept Compilation (Native):** Within the same agentic pass, it identifies 3-7 core technical concepts and either creates new `.md` files in the `wiki/` zone or appends the new insights to existing pages.
 
 ### 2. Advanced Vault Reasoning (`knowledge_commands.py`)
@@ -153,7 +253,7 @@ Instead of naive context dumping, the system implements **Targeted Context Gathe
 | **Agent Framework** | Google Antigravity SDK | Tool calling, orchestration, and agentic workflows. |
 | **Backend / Scripting**| Python 3.11+, `uv` | High-speed, deterministic local execution environment. |
 | **Knowledge Base** | Obsidian | Markdown-based graphical interface and local filesystem database. |
-| **Scraping** | `yt-dlp`, `youtube-transcript-api` | Headless multimedia transcript extraction. |
+| **Scraping & Ingestion**| `yt-dlp`, `youtube-transcript-api`, Buzz CLI | Resilient multimedia transcript extraction and local Whisper translation. |
 
 ---
 
@@ -162,6 +262,8 @@ Instead of naive context dumping, the system implements **Targeted Context Gathe
 **Lessons Learned:**
 1. **Tooling Specificity Matters:** Giving an LLM generic bash access is dangerous and error-prone. Building highly specific, scoped tools (like the Python-based vault linter) yielded exponentially more reliable results than asking the agent to "use grep to find broken links."
 2. **Context vs. RAG:** Relying on Gemini's massive context window for local qualitative analysis proved superior to managing a complex local Vector DB, especially for a single-user knowledge graph where the entire corpus fits in memory.
+3. **Session Cookie Warnings:** Passing session cookies (`--cookies-from-browser`) to `yt-dlp` during public livestream audio downloads can trigger false-positive API errors (such as `This live event has ended`). Removing them for public media streams ensures reliable extraction.
+4. **Whisper CLI Fallback:** Equipping background scripts with a command-line fallback to a local Whisper compiler (like Buzz) provides ultimate resilience when remote subtitle transcripts are blocked or unavailable.
 
 **Roadmap:**
 - Implement an automated cron-job to run the `/emerge` command weekly and append the findings to a "Weekly Review" note.

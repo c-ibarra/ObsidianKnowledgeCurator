@@ -23,7 +23,7 @@ When the user starts a message with a slash command, you must immediately execut
     *   *Purpose:* Run vault linter separately.
     *   *Execution:* `uv run python scripts/vault_linter.py`
 *   **`/okc-urlYoutube <url>`**
-    *   *Purpose:* Download cleaned transcripts, ingest the video, curate it in `raw/`, compile concepts in `wiki/`, and sync the vault.
+    *   *Purpose:* Ingest a YouTube video. It downloads subtitles or automatically falls back to local Buzz CLI Whisper transcription if subtitles are disabled. It curates the note in `raw/` (including `Processed/Procesado` date), compiles concepts in `wiki/`, and syncs the vault.
     *   *Execution:* Run `uv run python scripts/fetch_youtube_data.py --url "<url>"`. Once completed, read `temp/fetched_data.json` and `temp/fetched_data.txt`, generate the curated note in `raw/`, compile concepts in `wiki/`, and run `uv run python scripts/sync_vault.py`.
 *   **`/okc-urlArticle <url>`**
     *   *Purpose:* Fetch content from an article or web page, curate it in `raw/`, compile concepts in `wiki/`, and sync the vault.

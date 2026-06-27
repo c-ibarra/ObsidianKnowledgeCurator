@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.4.0] - 2026-06-27
+
+### Added
+- **Buzz CLI fallback in `fetch_youtube_data.py`**: Automatic local Whisper transcription fallback when YouTube subtitles are disabled or unavailable.
+- **`Processed/Procesado` date metadata convention**: Standardized metadata headers across 308 notes in the vault and rules (`GEMINI.md`, `okc-urlYoutube`, `okc-urlArticle` skills) to record the date when curated notes are processed.
+- **Vault health corrections**: Grouped Parax and ObsidianKnowledgeCurator comparative analysis notes inside dedicated subdirectories in `raw/Portfolio ideas/`, resolving the orphan note count in the vault down to 0.
+
+### Fixed
+- **`yt-dlp` cookie session error**: Removed cookies from the audio extraction subprocess to prevent "This live event has ended" API errors on ended livestreams.
+
 ## [2.3.0] - 2026-06-25
 
 ### Added

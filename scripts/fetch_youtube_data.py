@@ -135,7 +135,57 @@ def get_transcript(video_id: str) -> str:
         shutil.rmtree(tmp_dir, ignore_errors=True)
         return "\n".join(deduped)
     except Exception as e:
-        print(f"Critical error obtaining transcript: {e}", file=sys.stderr)
+        print(f"Subtitles fallback failed: {e}. Trying Buzz CLI local transcription fallback...", file=sys.stderr)
+
+    try:
+        url = f"https://www.youtube.com/watch?v={video_id}"
+        TEMP_DIR.mkdir(parents=True, exist_ok=True)
+        audio_dest = TEMP_DIR / f"{video_id}_temp_audio"
+        
+        print("Downloading video audio as MP3 via yt-dlp...", file=sys.stderr)
+        subprocess.run(
+            [
+                "yt-dlp",
+                "-x", "--audio-format", "mp3",
+                "--no-warnings",
+                "-o", f"{audio_dest}.%(ext)s",
+                url
+            ],
+            capture_output=True, check=True, timeout=120
+        )
+        
+        mp3_path = Path(f"{audio_dest}.mp3")
+        if not mp3_path.exists():
+            raise RuntimeError("MP3 audio file was not created by yt-dlp")
+            
+        print("Running Buzz CLI transcription in background (base model)...", file=sys.stderr)
+        subprocess.run(
+            [
+                "/Applications/Buzz.app/Contents/MacOS/Buzz",
+                "add", "--txt", "--hide-gui",
+                "-s", "base", "-l", "en",
+                "-d", str(TEMP_DIR),
+                str(mp3_path)
+            ],
+            capture_output=True, check=True, timeout=300
+        )
+        
+        txt_files = list(TEMP_DIR.glob(f"{video_id}_temp_audio*.txt"))
+        if not txt_files:
+            raise RuntimeError("No transcription text file was created by Buzz CLI")
+            
+        transcription_txt = txt_files[0]
+        text_content = transcription_txt.read_text(encoding="utf-8")
+        
+        try:
+            mp3_path.unlink()
+            transcription_txt.unlink()
+        except Exception as cleanup_err:
+            print(f"Warning during temp cleanup: {cleanup_err}", file=sys.stderr)
+            
+        return text_content
+    except Exception as buzz_err:
+        print(f"Critical error obtaining transcript via Buzz: {buzz_err}", file=sys.stderr)
         return ""
 
 def main():
