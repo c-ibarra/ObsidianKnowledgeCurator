@@ -9,9 +9,13 @@ VAULT_ROOT = Path(os.environ.get("OBSIDIAN_VAULT_PATH", "/Users/carlosibarra/Lib
 
 def get_master_plan_title(target_kb: str) -> str:
     kb_name = target_kb.split("/")[-1]
-    if "AI Engineer" in kb_name:
-        return "AI Engineering"
-    return kb_name
+    mappings = {
+        "AI Engineer": "AI Engineering",
+        "software engineer": "Software Engineering",
+        "Machine Learning": "Machine Learning",
+        "machine learning": "Machine Learning"
+    }
+    return mappings.get(kb_name, kb_name.title())
 
 def clean_creator(creator_raw: str) -> str:
     # Remove markdown link formatting e.g. [@channel](url) -> @channel

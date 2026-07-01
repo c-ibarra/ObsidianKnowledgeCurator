@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
+import os
 import sys
 import subprocess
 import argparse
 from pathlib import Path
 
 PROJECT_DIR = Path(__file__).parent.parent
+VAULT_BASE = Path(os.environ.get("OBSIDIAN_VAULT_PATH", "/Users/carlosibarra/Library/CloudStorage/OneDrive-Personal/Obsidian"))
 
 def run_script(script_name: str, args: list = None) -> bool:
     script_path = PROJECT_DIR / "scripts" / script_name
@@ -22,23 +24,43 @@ def run_script(script_name: str, args: list = None) -> bool:
         print(f"=== ERROR: {script_name} failed with code {proc.returncode} ===\n", file=sys.stderr)
         return False
 
+def discover_categories() -> list:
+    categories = []
+    # Scan for directories under VAULT_BASE that contain a 'raw' subdirectory
+    for root, dirs, files in os.walk(VAULT_BASE):
+        if any(ignored in root for ignored in ["dswok", ".git", ".obsidian", ".agents"]):
+            continue
+        if "raw" in dirs:
+            rel_path = Path(root).relative_to(VAULT_BASE)
+            categories.append(str(rel_path))
+    return sorted(categories)
+
 def main():
     parser = argparse.ArgumentParser(description="Vault Sync & Integrity Checker")
-    parser.add_argument("--target-kb", default="dataScienceKnowledgeBase/AI Engineer", help="Target knowledge base folder relative to vault root")
+    parser.add_argument("--target-kb", default="dataScienceKnowledgeBase/AI Engineer", help="Target knowledge base folder relative to vault root, or 'all'")
     args = parser.parse_args()
 
     print("================================================================================")
     print("VAULT SYNC & INTEGRITY CHECK")
     print("================================================================================")
     
-    # 1. Update Master Plan
-    if not run_script("update_master_plan.py", ["--target-kb", args.target_kb]):
-        sys.exit(1)
+    categories = []
+    if args.target_kb.lower() == "all":
+        categories = discover_categories()
+        print(f"Auto-discovered categories: {categories}\n")
+    else:
+        categories = [args.target_kb]
         
-    # 2. Run Vault Linter
-    if not run_script("vault_linter.py", ["--target-kb", args.target_kb]):
-        sys.exit(1)
-        
+    for category in categories:
+        print(f"--- Processing Category: {category} ---")
+        # 1. Update Master Plan
+        if not run_script("update_master_plan.py", ["--target-kb", category]):
+            sys.exit(1)
+            
+        # 2. Run Vault Linter
+        if not run_script("vault_linter.py", ["--target-kb", category]):
+            sys.exit(1)
+            
     print("================================================================================")
     print("Sync and integrity check finished successfully!")
     print("================================================================================")

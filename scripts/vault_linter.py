@@ -18,9 +18,15 @@ VAULT_BASE = Path(os.environ.get("OBSIDIAN_VAULT_PATH", "/Users/carlosibarra/Lib
 # ==============================================================================
 
 def run_linter(target_kb: str = "dataScienceKnowledgeBase/AI Engineer"):
-    target_kb_dir = VAULT_BASE / target_kb
+    if target_kb.lower() == "all":
+        target_kb_dir = VAULT_BASE
+        target_kb_name = "Entire Vault"
+    else:
+        target_kb_dir = VAULT_BASE / target_kb
+        target_kb_name = target_kb
+        
     print("=" * 80)
-    print("VAULT HEALTH CHECK & LINTER")
+    print(f"VAULT HEALTH CHECK & LINTER ({target_kb_name})")
     print("=" * 80)
     
     if not target_kb_dir.exists():
@@ -32,7 +38,18 @@ def run_linter(target_kb: str = "dataScienceKnowledgeBase/AI Engineer"):
     link_graph = {}
     contradictions = []
     
-    # 1. Gather all files and their contents
+    # 1. Build a global catalog of all notes/files in the vault for link resolution
+    global_note_names = set()
+    for root, dirs, files in os.walk(VAULT_BASE):
+        if "dswok" in root:
+            continue
+        for file in files:
+            if file.endswith(".md"):
+                global_note_names.add(file[:-3])
+            elif file.lower().endswith(('.png', '.jpg', '.jpeg', '.gif', '.webp', '.pdf', '.svg')):
+                global_note_names.add(file)
+
+    # 2. Gather all files in the target KB and their contents
     for root, dirs, files in os.walk(target_kb_dir):
         if "dswok" in root:
             continue
@@ -40,7 +57,10 @@ def run_linter(target_kb: str = "dataScienceKnowledgeBase/AI Engineer"):
         for file in files:
             if file.endswith(".md"):
                 file_path = Path(root) / file
-                rel_path = file_path.relative_to(target_kb_dir)
+                try:
+                    rel_path = file_path.relative_to(target_kb_dir)
+                except ValueError:
+                    rel_path = file_path.relative_to(VAULT_BASE)
                 file_name_no_ext = file[:-3]
                 
                 try:
@@ -56,7 +76,7 @@ def run_linter(target_kb: str = "dataScienceKnowledgeBase/AI Engineer"):
                     "outgoing": []
                 }
 
-    # 2. Extract links and contradictions
+    # 3. Extract links and contradictions
     link_pattern = re.compile(r'\[\[(.*?)\]\]')
     
     for note_name, data in all_notes.items():
@@ -95,20 +115,19 @@ def run_linter(target_kb: str = "dataScienceKnowledgeBase/AI Engineer"):
         if target in all_notes:
             all_notes[target]["incoming"].extend(sources)
 
-    # 3. Analyze Health
+    # 4. Analyze Health
     dead_links = []
     for target in all_links:
-        if target not in all_notes:
+        # Resolve target links globally against all notes and assets in the entire vault
+        if target not in all_notes and target not in global_note_names:
             dead_links.append(target)
             
     orphans = []
     for note_name, data in all_notes.items():
-        # A note is an orphan if it has 0 incoming links and 0 outgoing links
-        # Or you could define it as 0 incoming links (except Master Plans)
         if not data["incoming"] and not data["outgoing"] and "Master Plan" not in note_name:
             orphans.append(note_name)
 
-    # 4. Report
+    # 5. Report
     print(f"Total Notes Analyzed: {len(all_notes)}")
     
     print("\n[!] CONTRADICTIONS FOUND:")
