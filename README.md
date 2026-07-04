@@ -53,6 +53,8 @@ This project runs locally and relies on Python 3.12+ and external command-line u
 *   **Python Package Manager:** [uv](https://github.com/astral-sh/uv) (highly recommended for high-speed, isolated environment management).
 *   **Media Processing:** [ffmpeg](https://ffmpeg.org/) (required by `yt-dlp` to extract audio streams).
 *   **Local Transcription Fallback:** [Buzz CLI](https://github.com/chidiwilliams/buzz) (required for offline Whisper transcription fallback).
+*   **High-Fidelity PDF Conversion:** [marker-pdf](https://github.com/VikParuchuri/marker) (used to convert PDF papers into structured Markdown. The first run automatically downloads ~2-3 GB of deep learning models).
+
 
 ---
 
@@ -253,7 +255,8 @@ Instead of naive context dumping, the system implements **Targeted Context Gathe
 | **Agent Framework** | Google Antigravity SDK | Tool calling, orchestration, and agentic workflows. |
 | **Backend / Scripting**| Python 3.11+, `uv` | High-speed, deterministic local execution environment. |
 | **Knowledge Base** | Obsidian | Markdown-based graphical interface and local filesystem database. |
-| **Scraping & Ingestion**| `yt-dlp`, `youtube-transcript-api`, Buzz CLI | Resilient multimedia transcript extraction and local Whisper translation. |
+| **Scraping & Ingestion**| `yt-dlp`, `youtube-transcript-api`, `Buzz CLI`, `marker-pdf` | Resilient multimedia transcript extraction, local Whisper translation, and layout-aware PDF-to-Markdown conversion. |
+
 
 ---
 

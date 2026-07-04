@@ -5,7 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.5.0] - 2026-07-03
+
+### Added
+- **High-Fidelity PDF Conversion via `marker-pdf`**: Integrated `marker-pdf` in `pyproject.toml` and updated `temp/extract_pdf.py` to use `marker_single` CLI for extracting structured Markdown with LaTeX math syntax and clean tables from papers.
+- **MCP Server Architecture Patterns curation**: Curated Carson Rodrigues & Oysturn Vas (2026) arXiv paper detailing the five architectural patterns (Resource Gateway, Tool Orchestrator, Stateful Session Server, Proxy Aggregator, and Domain-Specific Adapter) and four anti-patterns, syncing it natively with the vault's graph.
+
 ## [2.4.0] - 2026-06-27
+
 
 ### Added
 - **Buzz CLI fallback in `fetch_youtube_data.py`**: Automatic local Whisper transcription fallback when YouTube subtitles are disabled or unavailable.
