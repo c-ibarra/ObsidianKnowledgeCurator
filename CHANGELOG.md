@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.6.0] - 2026-07-17
+
+### Added
+- **Dynamic Web Scraping via CDP (`fetch_article_data.py`)**: Implemented a layout-aware web scraper that processes static HTML using `requests`/`BeautifulSoup` and falls back to launching local headless Google Chrome Canary/Chrome on macOS. Interacts via Chrome DevTools Protocol (CDP) and WebSocket handshakes (`--remote-debugging-port=9222`) to wait for client-side JavaScript rendering before extracting the DOM. This bypasses the OS restrictions of standard sandbox tools.
+- **WebSocket Integration**: Added `websocket-client` dependency in `pyproject.toml` to enable CDP WebSocket handshakes.
+- **Integrated Ingestion Workflows**: Updated custom slash command mapping in `.agents/AGENTS.md` and the `okc-urlArticle` skill guides to route all article ingestions through the automated `scripts/fetch_article_data.py` pipeline.
+
 ## [2.5.0] - 2026-07-03
 
 ### Added

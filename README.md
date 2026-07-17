@@ -51,6 +51,7 @@ A headless automation pipeline that ingests content, parses transcripts, and uti
 This project runs locally and relies on Python 3.12+ and external command-line utilities.
 
 *   **Python Package Manager:** [uv](https://github.com/astral-sh/uv) (highly recommended for high-speed, isolated environment management).
+*   **Browser Scraping:** [Google Chrome](https://www.google.com/chrome/) or Chrome Canary (installed locally on macOS/Linux/Windows, required for dynamic JS-rendered article scraping).
 *   **Media Processing:** [ffmpeg](https://ffmpeg.org/) (required by `yt-dlp` to extract audio streams).
 *   **Local Transcription Fallback:** [Buzz CLI](https://github.com/chidiwilliams/buzz) (required for offline Whisper transcription fallback).
 *   **High-Fidelity PDF Conversion:** [marker-pdf](https://github.com/VikParuchuri/marker) (used to convert PDF papers into structured Markdown. The first run automatically downloads ~2-3 GB of deep learning models).
@@ -196,7 +197,7 @@ To prevent the `wiki/` zone from accumulating redundant, stub, or low-value conc
 
 ## 🔄 End-to-End Workflow
 
-### 1. Multi-Stage Ingestion Pipeline (`fetch_youtube_data.py`)
+### 1. Multi-Stage Multimedia Ingestion Pipeline (`fetch_youtube_data.py`)
 1. **Three-Tier Extraction:** Pulls video transcripts using a resilient three-tier fallback pipeline:
    - *Tier 1:* Online transcripts via `youtube-transcript-api`.
    - *Tier 2:* Auto-generated VTT subtitle downloads via `yt-dlp`.
@@ -204,14 +205,21 @@ To prevent the `wiki/` zone from accumulating redundant, stub, or low-value conc
 2. **Raw Generation (Native):** The Antigravity agent natively reads the JSON metadata and transcript text, producing a highly structured markdown summary with an immutable source header blockquote, including the exact processing date (`Processed: DD-MM-YYYY`), key takeaways, flashcards, and glossaries.
 3. **Concept Compilation (Native):** Within the same agentic pass, it identifies 3-7 core technical concepts and either creates new `.md` files in the `wiki/` zone or appends the new insights to existing pages.
 
-### 2. Advanced Vault Reasoning (`knowledge_commands.py`)
+### 2. Layout-Aware Web Ingestion Pipeline (`fetch_article_data.py`)
+1. **Hybrid Rendering Extraction**: Resolves static vs dynamic client-side rendered (CSR) web content (e.g. Substack, Medium, Gemini share links):
+   - *Static Fetch*: Direct request-based download via `requests` for fast, low-overhead parsing.
+   - *Dynamic CDP Fetch*: Headless local browser orchestration using macOS Chrome Canary/Chrome over Chrome DevTools Protocol (CDP) WebSocket handshakes (`--remote-debugging-port=9222`), allowing full client-side JavaScript execution before dumping the DOM.
+2. **Deterministic Layout Parsing**: Employs `BeautifulSoup` to clean HTML trees (decomposing scripts, styles, buttons, headers, and navigation UI) and formats headings, paragraphs, code blocks, lists, and tables into clean GitHub-Flavored Markdown.
+3. **Metadata & Content Alignment**: Outputs clean structured JSON metadata and markdown files, ensuring identical pipeline interfaces across both multimedia (YouTube) and text (Web articles) ingestions.
+
+### 3. Advanced Vault Reasoning (`knowledge_commands.py`)
 Because the knowledge is structured, the agent can perform deep-vault operations:
 - `/okc-trace`: Reconstructs the chronological evolution of an idea across the vault.
 - `/okc-emerge`: Scans recent notes to find implicit conclusions or recurring patterns the user hasn't explicitly documented.
 - `/okc-drift`: Compares stated intentions in older notes with actual recorded behavior in recent notes.
 - `/okc-find <query>`: Performs a fast, case-insensitive note-name substring search, outputting matches as wikilinks and relative file paths.
 
-### 3. Continuous Integration & Sync (`sync_vault.py`, `vault_linter.py`)
+### 4. Continuous Integration & Sync (`sync_vault.py`, `vault_linter.py`)
 To preserve index alignment and check graph health in one step:
 - **`sync_vault.py`**: A unified sync runner that updates category/series Master Plans (via `update_master_plan.py`) and executes the vault health check (via `vault_linter.py`) sequentially. Accepts `--target-kb` parameter forwarding.
 - **`vault_linter.py`**: A custom Python linter that runs against the vault to ensure graph integrity:
@@ -219,7 +227,7 @@ To preserve index alignment and check graph health in one step:
   - Detects isolated "orphan" notes.
   - Scans for the `> [!contradiction]` callout, which the agent injects when new sources conflict with existing wiki knowledge.
 
-### 4. Generic Notion Migration & Curation Pipeline (`curate_notion_import.py`)
+### 5. Generic Notion Migration & Curation Pipeline (`curate_notion_import.py`)
 A parameterizable batch-migration and curation system that ingests imported Notion folder contents:
 - Dynamically maps sources using `--notion-dir`, `--target-kb`, and `--course-name` arguments.
 - Formats notes to strict zero-YAML Spanish conventions using the active agent context.
@@ -255,7 +263,7 @@ Instead of naive context dumping, the system implements **Targeted Context Gathe
 | **Agent Framework** | Google Antigravity SDK | Tool calling, orchestration, and agentic workflows. |
 | **Backend / Scripting**| Python 3.11+, `uv` | High-speed, deterministic local execution environment. |
 | **Knowledge Base** | Obsidian | Markdown-based graphical interface and local filesystem database. |
-| **Scraping & Ingestion**| `yt-dlp`, `youtube-transcript-api`, `Buzz CLI`, `marker-pdf` | Resilient multimedia transcript extraction, local Whisper translation, and layout-aware PDF-to-Markdown conversion. |
+| **Scraping & Ingestion**| Chrome DevTools Protocol (CDP), `websocket-client`, `beautifulsoup4`, `yt-dlp`, `youtube-transcript-api`, `Buzz CLI`, `marker-pdf` | Resilient dynamic/static web scraping, multimedia transcript extraction, local Whisper translation, and layout-aware PDF-to-Markdown conversion. |
 
 
 ---
@@ -265,8 +273,9 @@ Instead of naive context dumping, the system implements **Targeted Context Gathe
 **Lessons Learned:**
 1. **Tooling Specificity Matters:** Giving an LLM generic bash access is dangerous and error-prone. Building highly specific, scoped tools (like the Python-based vault linter) yielded exponentially more reliable results than asking the agent to "use grep to find broken links."
 2. **Context vs. RAG:** Relying on Gemini's massive context window for local qualitative analysis proved superior to managing a complex local Vector DB, especially for a single-user knowledge graph where the entire corpus fits in memory.
-3. **Session Cookie Warnings:** Passing session cookies (`--cookies-from-browser`) to `yt-dlp` during public livestream audio downloads can trigger false-positive API errors (such as `This live event has ended`). Removing them for public media streams ensures reliable extraction.
-4. **Whisper CLI Fallback:** Equipping background scripts with a command-line fallback to a local Whisper compiler (like Buzz) provides ultimate resilience when remote subtitle transcripts are blocked or unavailable.
+3. **Dynamic Content Scraping via CDP**: Running local headless Chrome debugging via Chrome DevTools Protocol (CDP) on macOS bypasses compatibility constraints of containerized browser tools (like `browser_subagent`). This allows scraping client-side rendered (CSR) dynamic pages (such as Gemini Shared links) with zero external Selenium/Playwright dependencies by wrapping the CDP interface in lightweight WebSockets (`websocket-client`).
+4. **Session Cookie Warnings:** Passing session cookies (`--cookies-from-browser`) to `yt-dlp` during public livestream audio downloads can trigger false-positive API errors (such as `This live event has ended`). Removing them for public media streams ensures reliable extraction.
+5. **Whisper CLI Fallback:** Equipping background scripts with a command-line fallback to a local Whisper compiler (like Buzz) provides ultimate resilience when remote subtitle transcripts are blocked or unavailable.
 
 **Roadmap:**
 - Implement an automated cron-job to run the `/emerge` command weekly and append the findings to a "Weekly Review" note.
