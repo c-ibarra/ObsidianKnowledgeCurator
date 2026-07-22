@@ -119,7 +119,7 @@ With this information:
 - Identify relevant existing categories for the content
 - **If a note on the same topic already exists → update it, do not create a new one**
 
-### ⚠️ PROTECTED ZONE — NEVER read or modify
+### ⚠️ PROTECTED ZONE — NEVER modify (Read-Only)
 ```
 dataScienceKnowledgeBase/dswok
 ```
