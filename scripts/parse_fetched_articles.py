@@ -121,9 +121,9 @@ if __name__ == "__main__":
     import json
     
     step_files = {
-        "article_1": Path("/Users/carlosibarra/.gemini/antigravity/brain/2e5de287-dedf-40f8-83ea-a690ef30e165/.system_generated/steps/240/content.md"),
-        "article_2": Path("/Users/carlosibarra/.gemini/antigravity/brain/2e5de287-dedf-40f8-83ea-a690ef30e165/.system_generated/steps/241/content.md"),
-        "article_3": Path("/Users/carlosibarra/.gemini/antigravity/brain/2e5de287-dedf-40f8-83ea-a690ef30e165/.system_generated/steps/242/content.md")
+        "article_1": Path("temp/article_1.md"),
+        "article_2": Path("temp/article_2.md"),
+        "article_3": Path("temp/article_3.md")
     }
     
     temp_dir = Path("temp")

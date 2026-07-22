@@ -10,7 +10,7 @@ from pathlib import Path
 # ==============================================================================
 
 PROJECT_DIR = Path(__file__).parent.parent
-VAULT_BASE = Path(os.environ.get("OBSIDIAN_VAULT_PATH", "/Users/carlosibarra/Library/CloudStorage/OneDrive-Personal/Obsidian"))
+VAULT_BASE = Path(os.environ.get("OBSIDIAN_VAULT_PATH", str(Path.home() / "Obsidian")))
 TEMP_DIR = PROJECT_DIR / "temp"
 
 def scan_contradictions(target_kb: str = "dataScienceKnowledgeBase/AI Engineer"):

@@ -4,7 +4,7 @@ import argparse
 from pathlib import Path
 from datetime import datetime
 
-VAULT_ROOT = Path("/Users/carlosibarra/Library/CloudStorage/OneDrive-Personal/Obsidian")
+VAULT_ROOT = Path(os.environ.get("OBSIDIAN_VAULT_PATH", str(Path.home() / "Obsidian")))
 
 def migrate(execute=False):
     notes_to_change = []

@@ -42,7 +42,7 @@ obsidian search query="<query>" limit=10
 
 **Fallback** (if search times out — Obsidian in background):
 ```bash
-find "/Users/carlosibarra/projects/obsidianKnowledgeCurator/obsidianKnowledgeCurator" \
+find "." \
   -name "*.md" ! -path "*/dswok/*" \
   -exec grep -il "<query>" {} \; 2>/dev/null | head -10
 ```

@@ -24,7 +24,7 @@ from pydantic import BaseModel, Field, ConfigDict
 # =============================================================================
 
 # Base directory where transcripts are saved
-TRANSCRIPTS_DIR = Path("/Users/carlosibarra/Downloads/yt-transcripts")
+TRANSCRIPTS_DIR = Path.home() / "Downloads" / "yt-transcripts"
 
 # Preferred languages (in order of priority)
 PREFERRED_LANGS = ["es", "en"]

@@ -8,7 +8,7 @@ from pathlib import Path
 # CONFIGURATION
 # ==============================================================================
 
-VAULT_BASE = Path(os.environ.get("OBSIDIAN_VAULT_PATH", "/Users/carlosibarra/Library/CloudStorage/OneDrive-Personal/Obsidian"))
+VAULT_BASE = Path(os.environ.get("OBSIDIAN_VAULT_PATH", str(Path.home() / "Obsidian")))
 DEFAULT_KB_DIR = VAULT_BASE / "dataScienceKnowledgeBase"
 
 def run_linter(target_dir_name: str):

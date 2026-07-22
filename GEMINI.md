@@ -10,7 +10,7 @@ without breaking its current structure.
 
 > [!IMPORTANT]
 > **VAULT ABSOLUTE PATH:**
-> `VAULT_ROOT = /Users/carlosibarra/Library/CloudStorage/OneDrive-Personal/Obsidian`
+> `VAULT_ROOT = <OBSIDIAN_VAULT_PATH>` (defined in your local .env or system environment variables)
 > You MUST always construct full absolute paths using this root when writing or reading files natively. Do not assume the vault is in the local project workspace.
 
 ---
@@ -300,7 +300,7 @@ To ensure maximum speed and zero terminal permission popups, **Bypass the `obsid
 > **Native File Operations**: Instead of using shell commands (`obsidian create`, `cp`, `mv`) which trigger manual user approval and latency, use your native `write_to_file` and `replace_file_content` tools directly on the absolute `VAULT_ROOT` path.
 
 For each note:
-1. Construct the absolute path: `/Users/carlosibarra/Library/CloudStorage/OneDrive-Personal/Obsidian/<RootFolder>/<Category>/<Note Name>.md`
+1. Construct the absolute path: `<VAULT_ROOT>/<RootFolder>/<Category>/<Note Name>.md`
 2. Use `write_to_file` to create the note and its parent directories instantly.
 3. Use `replace_file_content` or `multi_replace_file_content` if you are updating an existing note.
 
@@ -343,6 +343,6 @@ Before proposing any move, rename, or reclassification, analyze the context. Not
 - **UV Local Environment (Performance)**: To reduce latency and avoid slow dynamic package resolutions, prioritize using the local UV environment (`obsidianKnowledgeCurator`) by calling scripts via `uv run` directly in the project context.
 - **No Polling Async Tasks (Efficiency)**: Never use `manage_task` with `Action="status"` to poll background commands. Let the system wake you up reactively when the async process finishes.
 - **Native Tool Preference (Zero Popups)**: Absolutely minimize the use of the `run_command` terminal tool for operations like `mv`, `cp`, `mkdir`, `find`, or `cat`, as they pause execution and require user approval. Always prefer `write_to_file`, `list_dir`, `view_file`, and `grep_search`.
-- **Vault Boundaries and Permissions (Security)**: The Obsidian vault (`VAULT_ROOT`) resides outside the project workspace. At the very beginning of a session, use the `ask_permission` tool Action=`write_file` Target=`/Users/carlosibarra/Library/CloudStorage/OneDrive-Personal/Obsidian` to request global native access exactly ONCE. This is much faster and less intrusive than requesting terminal command approvals for every single file.
+- **Vault Boundaries and Permissions (Security)**: The Obsidian vault (`VAULT_ROOT`) resides outside the project workspace. At the very beginning of a session, use the `ask_permission` tool Action=`write_file` Target=`<VAULT_ROOT>` to request global native access exactly ONCE. This is much faster and less intrusive than requesting terminal command approvals for every single file.
 - **Documentation Routing (Efficiency)**: Always route technical queries about libraries and frameworks directly through the Context7 MCP connector, rather than generic web searches.
 - **Execution Session Report**: At the end of every execution task, you must generate a comprehensive final session report as your response to the user. This report MUST include: (1) A list of all Skills and tools used during the session. (2) Any warnings, errors, or missing data (e.g., transcripts not available). (3) A markdown table listing all files created or modified during the task, with two columns: `File Name` (linked) and `Absolute Path`. Do not create intermediate logs during the execution to preserve performance; strictly consolidate this trace into your final output message.

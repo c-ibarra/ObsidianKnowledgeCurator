@@ -5,7 +5,7 @@ from pathlib import Path
 
 import argparse
 
-VAULT_ROOT = Path(os.environ.get("OBSIDIAN_VAULT_PATH", "/Users/carlosibarra/Library/CloudStorage/OneDrive-Personal/Obsidian"))
+VAULT_ROOT = Path(os.environ.get("OBSIDIAN_VAULT_PATH", str(Path.home() / "Obsidian")))
 
 def get_master_plan_title(target_kb: str) -> str:
     kb_name = target_kb.split("/")[-1]

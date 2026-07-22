@@ -3,7 +3,7 @@ import os
 import shutil
 from pathlib import Path
 
-VAULT_ROOT = Path("/Users/carlosibarra/Library/CloudStorage/OneDrive-Personal/Obsidian")
+VAULT_ROOT = Path(os.environ.get("OBSIDIAN_VAULT_PATH", str(Path.home() / "Obsidian")))
 SOURCE_DIR = VAULT_ROOT / "dataScienceKnowledgeBase/AI Engineer/raw/Portfolio ideas"
 DEST_DIR = SOURCE_DIR / "Parax"
 

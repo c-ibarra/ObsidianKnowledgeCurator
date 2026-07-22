@@ -31,7 +31,7 @@ def load_env():
 env = load_env()
 
 # Vault Directories
-VAULT_BASE = Path(os.environ.get("OBSIDIAN_VAULT_PATH", "/Users/carlosibarra/Library/CloudStorage/OneDrive-Personal/Obsidian"))
+VAULT_BASE = Path(os.environ.get("OBSIDIAN_VAULT_PATH", str(Path.home() / "Obsidian")))
 COURSE_NAME = "Feature Engineering for Machine Learning"
 TARGET_KB = "Machine Learning"
 
