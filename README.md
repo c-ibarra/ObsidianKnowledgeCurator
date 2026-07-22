@@ -152,7 +152,7 @@ cp .env.example .env
 
 Edit `.env` to configure your absolute vault path and quality thresholds:
 ```env
-OBSIDIAN_VAULT_PATH="/Users/carlosibarra/Library/CloudStorage/OneDrive-Personal/Obsidian"
+OBSIDIAN_VAULT_PATH="/path/to/your/Obsidian/Vault"
 MIN_TECHNICAL_SCORE=60
 MAX_TRANSCRIPT_CHARS=50000
 CONTEXT_DEGRADATION_THRESHOLD=0.40

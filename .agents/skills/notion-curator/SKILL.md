@@ -46,7 +46,7 @@ For each processed note:
 
 ## Step 4 — Update Master Plan
 1. Parse the metadata of all curated raw notes.
-2. Edit `/Users/carlosibarra/projects/obsidianKnowledgeCurator/obsidianKnowledgeCurator/<RootFolder>/Master Plan — <Course>.md` directly using `replace_file_content` to rebuild its index table.
+2. Edit `<VaultRoot>/<RootFolder>/Master Plan — <Course>.md` directly using `replace_file_content` to rebuild its index table.
 
 ## Step 5 — Move Original Files
 Move the original Notion file to a `processed/` directory:

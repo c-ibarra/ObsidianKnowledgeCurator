@@ -25,6 +25,7 @@ temp_note.md
 # IDE and Vault Artifacts (Avoid pushing absolute system paths)
 .obsidian/
 .agents/skills/temp_*
+.agents/skills/obsidian-knowledge-curator/KNOWLEDGE.md
 .gemini/
 .vscode/
 
