@@ -6,6 +6,18 @@ import argparse
 from pathlib import Path
 
 PROJECT_DIR = Path(__file__).parent.parent
+
+def load_env():
+    env_path = PROJECT_DIR / ".env"
+    if env_path.exists():
+        with open(env_path, "r", encoding="utf-8") as f:
+            for line in f:
+                if line.strip() and not line.startswith("#") and "=" in line:
+                    key, val = line.split("=", 1)
+                    val = val.strip().strip('"').strip("'")
+                    os.environ[key.strip()] = val
+
+load_env()
 VAULT_BASE = Path(os.environ.get("OBSIDIAN_VAULT_PATH", str(Path.home() / "Obsidian")))
 
 def run_script(script_name: str, args: list = None) -> bool:
