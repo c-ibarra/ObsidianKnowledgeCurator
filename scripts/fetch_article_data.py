@@ -7,12 +7,157 @@ import json
 import argparse
 import subprocess
 import urllib.request
+import urllib.parse
 from pathlib import Path
 from bs4 import BeautifulSoup
 import requests
 
 PROJECT_DIR = Path(__file__).parent.parent
 TEMP_DIR = PROJECT_DIR / "temp"
+
+# ==============================================================================
+# MCP FETCH INTEGRATION (PRIMARY SCRAIPING ENGINE)
+# ==============================================================================
+
+def fetch_via_mcp(url: str) -> str:
+    """
+    Attempts to fetch webpage content using the official mcp-server-fetch.
+    Spawns 'uvx mcp-server-fetch' as an on-demand stdio subprocess and communicates via JSON-RPC.
+    """
+    print(f"Attempting to fetch via mcp-server-fetch for URL: {url}...", file=sys.stderr)
+    try:
+        proc = subprocess.Popen(
+            ["uvx", "mcp-server-fetch"],
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            bufsize=1
+        )
+        
+        # 1. Send initialize request
+        init_req = {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "initialize",
+            "params": {
+                "protocolVersion": "2024-11-05",
+                "capabilities": {},
+                "clientInfo": {"name": "okc-fetch-client", "version": "1.0"}
+            }
+        }
+        proc.stdin.write(json.dumps(init_req) + "\n")
+        proc.stdin.flush()
+        
+        # Read initialize response (loop until id == 1 is found)
+        init_res_line = ""
+        while True:
+            line = proc.stdout.readline()
+            if not line:
+                break
+            try:
+                data = json.loads(line)
+                if data.get("id") == 1:
+                    init_res_line = line
+                    break
+            except json.JSONDecodeError:
+                continue
+                
+        if not init_res_line:
+            print("Failed to initialize Fetch MCP server.", file=sys.stderr)
+            return ""
+            
+        # 2. Send initialized notification
+        initialized_notification = {
+            "jsonrpc": "2.0",
+            "method": "notifications/initialized"
+        }
+        proc.stdin.write(json.dumps(initialized_notification) + "\n")
+        proc.stdin.flush()
+        
+        # 3. Call fetch tool
+        call_req = {
+            "jsonrpc": "2.0",
+            "id": 2,
+            "method": "tools/call",
+            "params": {
+                "name": "fetch",
+                "arguments": {"url": url}
+            }
+        }
+        proc.stdin.write(json.dumps(call_req) + "\n")
+        proc.stdin.flush()
+        
+        # Read tools/call response (loop until id == 2 is found)
+        call_res_line = ""
+        while True:
+            line = proc.stdout.readline()
+            if not line:
+                break
+            try:
+                data = json.loads(line)
+                if data.get("id") == 2:
+                    call_res_line = line
+                    break
+            except json.JSONDecodeError:
+                continue
+                
+        # Terminate process cleanly
+        proc.terminate()
+        proc.wait()
+        
+        if not call_res_line:
+            print("No response from Fetch MCP server.", file=sys.stderr)
+            return ""
+            
+        res = json.loads(call_res_line)
+        if "error" in res:
+            print(f"MCP Tool returned error: {res['error']}", file=sys.stderr)
+            return ""
+            
+        content_list = res.get("result", {}).get("content", [])
+        if content_list:
+            text = content_list[0].get("text", "")
+            return text
+            
+    except Exception as e:
+        print(f"Exception during Fetch MCP communication: {e}", file=sys.stderr)
+        
+    return ""
+
+def parse_mcp_markdown(mcp_text: str, url: str) -> tuple[str, str]:
+    """
+    Parses title and cleans body content from raw MCP markdown output.
+    """
+    lines = mcp_text.splitlines()
+    title = ""
+    
+    # Try finding the first markdown heading for title
+    for line in lines:
+        match = re.match(r"^#+\s+(.*)$", line)
+        if match:
+            title = match.group(1).strip()
+            break
+            
+    if not title:
+        # Fallback to domain name from URL
+        try:
+            domain = urllib.parse.urlparse(url).netloc
+            title = f"Web Article from {domain}"
+        except Exception:
+            title = "Web Article"
+            
+    # Clean up introductory "Contents of URL" line if present
+    body_lines = lines
+    if body_lines and body_lines[0].startswith("Contents of "):
+        body_lines = body_lines[1:]
+        
+    markdown_body = "\n".join(body_lines).strip()
+    return title, markdown_body
+
+# ==============================================================================
+# LEGACY SCRAPING FALLBACKS
+# ==============================================================================
 
 def check_chrome():
     paths = [
@@ -33,7 +178,6 @@ def fetch_dynamic_dom(url: str, delay: int = 8) -> str:
         
     print(f"Launching Chrome Canary/Chrome in background: {chrome_path}", file=sys.stderr)
     
-    # Start Chrome with remote debugging enabled
     cmd = [
         chrome_path,
         "--headless",
@@ -50,7 +194,6 @@ def fetch_dynamic_dom(url: str, delay: int = 8) -> str:
     
     dom_content = ""
     try:
-        # Get target page targets from CDP
         req = urllib.request.urlopen("http://localhost:9222/json", timeout=5)
         targets = json.loads(req.read().decode('utf-8'))
         
@@ -68,7 +211,6 @@ def fetch_dynamic_dom(url: str, delay: int = 8) -> str:
         import websocket
         ws = websocket.create_connection(ws_url, timeout=10)
         
-        # Execute JS evaluation on the page DOM
         eval_cmd = {
             "id": 1,
             "method": "Runtime.evaluate",
@@ -112,18 +254,11 @@ def fetch_static_html(url: str) -> str:
         return ""
 
 def clean_html_to_markdown(html_content: str) -> tuple[str, str]:
-    """
-    Parses HTML content, extracts the title and formats the body into clean markdown.
-    Returns (title, markdown_body).
-    """
     soup = BeautifulSoup(html_content, "html.parser")
-    
-    # Extract Title
     title = ""
     if soup.title and soup.title.string:
         title = soup.title.string.strip()
     
-    # Try finding page header if title is generic
     if not title or title.lower() in ["live content", "untitled", "home", "index"]:
         h1 = soup.find("h1")
         if h1:
@@ -131,11 +266,8 @@ def clean_html_to_markdown(html_content: str) -> tuple[str, str]:
     if not title:
         title = "Web Article"
         
-    # Standardize spaces in title
     title = re.sub(r'\s+', ' ', title)
     
-    # Identify the main article body content
-    # We prioritize common article wrapper classes
     article_body = (
         soup.find(class_="body") or 
         soup.find(class_="markup") or 
@@ -146,15 +278,13 @@ def clean_html_to_markdown(html_content: str) -> tuple[str, str]:
         soup
     )
     
-    # Strip unnecessary element types
     for s in article_body(["script", "style", "noscript", "svg", "button", "picture", "header", "footer", "nav"]):
         s.decompose()
         
-    # Convert tag hierarchy to markdown
     output = []
     
     def walk(node):
-        if node.name is None:  # Text node
+        if node.name is None:
             text = node.strip()
             if text:
                 output.append(node)
@@ -165,7 +295,6 @@ def clean_html_to_markdown(html_content: str) -> tuple[str, str]:
             
         if node.name in ["h1", "h2", "h3", "h4", "h5", "h6"]:
             level = int(node.name[1])
-            # get clean text without nested buttons or anchors
             text = "".join(child.get_text() if child.name not in ["button", "svg"] else "" for child in node.children).strip()
             output.append(f"\n\n{'#' * level} {text}\n")
             return
@@ -202,11 +331,9 @@ def clean_html_to_markdown(html_content: str) -> tuple[str, str]:
             
     walk(article_body)
     
-    # Format and deduplicate lines
     text_content = "".join(output)
     lines = [line.strip() for line in text_content.splitlines()]
     
-    # Deduplicate consecutive empty lines
     cleaned_lines = []
     prev_empty = False
     for line in lines:
@@ -223,40 +350,56 @@ def clean_html_to_markdown(html_content: str) -> tuple[str, str]:
     
     return title, markdown_body
 
+# ==============================================================================
+# MAIN ROUTINE
+# ==============================================================================
+
 def main():
-    parser = argparse.ArgumentParser(description="Fetch article web page data (supports static and dynamic dynamic rendering)")
+    parser = argparse.ArgumentParser(description="Fetch article web page data (supports Fetch MCP and legacy scrapers)")
     parser.add_argument("--url", required=True, help="Webpage URL to scrape")
-    parser.add_argument("--dynamic", action="store_true", help="Force dynamic client-side JS rendering using headless Chrome and CDP")
-    parser.add_argument("--delay", type=int, default=8, help="JavaScript execution buffer loading delay in seconds (default: 8)")
+    parser.add_argument("--dynamic", action="store_true", help="Force dynamic legacy Chrome CDP rendering")
+    parser.add_argument("--delay", type=int, default=8, help="JS rendering buffer delay in seconds (default: 8)")
     parser.add_argument("--output", help="Optional output JSON file path. Defaults to temp/fetched_data.json")
     args = parser.parse_args()
     
     url = args.url
+    mcp_success = False
+    title = ""
+    markdown_body = ""
     
-    # Auto-detect dynamic platform patterns (like gemini share links)
-    is_dynamic = args.dynamic or "share.gemini.google" in url or "gemini.google.com" in url
-    
-    if is_dynamic:
-        html = fetch_dynamic_dom(url, delay=args.delay)
-    else:
-        html = fetch_static_html(url)
-        # If static fetch yields nothing or minimal headers, fall back to dynamic automatically
-        if not html or len(html) < 2000:
-            print("Static fetch empty or restricted. Trying fallback dynamic Chrome fetch...", file=sys.stderr)
-            html = fetch_dynamic_dom(url, delay=args.delay)
+    # 1. Attempt Primary Scraping Engine (Fetch MCP) unless dynamic is forced
+    if not args.dynamic:
+        mcp_content = fetch_via_mcp(url)
+        if mcp_content:
+            print("Successfully extracted webpage content via Fetch MCP.", file=sys.stderr)
+            title, markdown_body = parse_mcp_markdown(mcp_content, url)
+            mcp_success = True
             
-    if not html:
-        print("Error: Could not retrieve webpage HTML content.", file=sys.stderr)
-        sys.exit(1)
+    # 2. Fall back to Legacy Scraper (Static or Dynamic Chrome CDP)
+    if not mcp_success:
+        print("Falling back to legacy scraping engines...", file=sys.stderr)
+        is_dynamic = args.dynamic or "share.gemini.google" in url or "gemini.google.com" in url
         
-    title, markdown_body = clean_html_to_markdown(html)
-    
-    # Format date for metadata
+        html = ""
+        if is_dynamic:
+            html = fetch_dynamic_dom(url, delay=args.delay)
+        else:
+            html = fetch_static_html(url)
+            if not html or len(html) < 2000:
+                print("Static fetch empty or restricted. Trying fallback dynamic Chrome fetch...", file=sys.stderr)
+                html = fetch_dynamic_dom(url, delay=args.delay)
+                
+        if not html:
+            print("Error: Could not retrieve webpage HTML content via legacy scrapers.", file=sys.stderr)
+            sys.exit(1)
+            
+        title, markdown_body = clean_html_to_markdown(html)
+        
+    # Format metadata matching fetch_youtube_data structure
     current_time = time.localtime()
     months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
     date_str = f"{months[current_time.tm_mon - 1]} {current_time.tm_year}"
     
-    # Setup metadata matching fetch_youtube_data structure
     data = {
         "url": url,
         "metadata": {

@@ -16,7 +16,12 @@ When the user starts a message with a slash command, you must immediately execut
 *   **`/okc-find <query>`**
     *   *Purpose:* Case-insensitive substring search for note titles.
     *   *Execution:* `uv run python scripts/knowledge_commands.py --find "<query>"`
+*   **`/getContextSize`**
+    *   *Purpose:* Show current conversation context window size, character count, and estimated token count.
+    *   *Execution:* `uv run python scripts/knowledge_commands.py --tokens`
 *   **`/okc-sync`**
+
+
     *   *Purpose:* Rebuild master plans and run vault linter.
     *   *Execution:* `uv run python scripts/sync_vault.py`
 *   **`/okc-linter`**
@@ -31,7 +36,24 @@ When the user starts a message with a slash command, you must immediately execut
 *   **`/okc-urlPlaylist <url>`**
     *   *Purpose:* Ingest an entire YouTube playlist, curate each video sequentially in `raw/` and `wiki/`, and sync the vault.
     *   *Execution:* Fetch the list of all video IDs in the playlist, process each video sequentially (downloading the transcript, curating it in `raw/`, and updating `wiki/`), and run `uv run python scripts/sync_vault.py`.
+*   **`/okc-urlTwitter <url>`**
+    *   *Purpose:* Ingest a Twitter/X post or video. It extracts post text and metadata, and if a video is present without subtitles, it automatically downloads the audio and transcribes it using Buzz CLI / Whisper. It curates the note in `raw/` (including `Processed/Procesado` date), compiles concepts in `wiki/`, and syncs the vault.
+    *   *Execution:* Run `uv run python scripts/fetch_twitter_data.py --url "<url>"`. Once completed, read `temp/fetched_data.json` and `temp/fetched_data.txt`, generate the curated note in `raw/`, compile concepts in `wiki/`, and run `uv run python scripts/sync_vault.py`.
+
 
 ## Formatting Guidelines
 *   Always run the commands from the workspace root directory.
 *   Format output inside a clean code block and append a list of any notes modified or referenced as clickable links (using the Obsidian URI scheme when relevant).
+
+---
+
+## Agent skills
+
+### Issue tracker
+
+Issues live as local markdown files under `.scratch/<feature>/`. See `docs/agents/issue-tracker.md`.
+
+### Domain docs
+
+Single-context layout with `GEMINI.md` at repo root and ADRs in `docs/adr/`. See `docs/agents/domain.md`.
+

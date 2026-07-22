@@ -53,7 +53,7 @@ def get_video_details(video_id: str):
     try:
         proc = subprocess.run(
             ["yt-dlp", "--dump-json", "--no-warnings", url],
-            capture_output=True, text=True, timeout=10
+            capture_output=True, text=True, timeout=60
         )
         if proc.returncode == 0:
             return parse_ytdlp_json(proc.stdout, video_id, url)
@@ -64,7 +64,7 @@ def get_video_details(video_id: str):
     try:
         proc = subprocess.run(
             ["yt-dlp", "--dump-json", "--no-warnings", "--cookies-from-browser", "chrome", url],
-            capture_output=True, text=True, timeout=15
+            capture_output=True, text=True, timeout=90
         )
         if proc.returncode == 0:
             return parse_ytdlp_json(proc.stdout, video_id, url)
@@ -142,21 +142,21 @@ def get_transcript(video_id: str) -> str:
         TEMP_DIR.mkdir(parents=True, exist_ok=True)
         audio_dest = TEMP_DIR / f"{video_id}_temp_audio"
         
-        print("Downloading video audio as MP3 via yt-dlp...", file=sys.stderr)
+        print("Downloading video audio via yt-dlp (format 140/bestaudio)...", file=sys.stderr)
+        m4a_path = TEMP_DIR / f"{video_id}_temp_audio.m4a"
         subprocess.run(
             [
                 "yt-dlp",
-                "-x", "--audio-format", "mp3",
+                "-f", "140/bestaudio/best",
                 "--no-warnings",
-                "-o", f"{audio_dest}.%(ext)s",
+                "-o", str(m4a_path),
                 url
             ],
-            capture_output=True, check=True, timeout=120
+            capture_output=True, check=True, timeout=300
         )
         
-        mp3_path = Path(f"{audio_dest}.mp3")
-        if not mp3_path.exists():
-            raise RuntimeError("MP3 audio file was not created by yt-dlp")
+        if not m4a_path.exists():
+            raise RuntimeError("m4a audio file was not created by yt-dlp")
             
         print("Running Buzz CLI transcription in background (base model)...", file=sys.stderr)
         subprocess.run(
@@ -165,9 +165,9 @@ def get_transcript(video_id: str) -> str:
                 "add", "--txt", "--hide-gui",
                 "-s", "base", "-l", "en",
                 "-d", str(TEMP_DIR),
-                str(mp3_path)
+                str(m4a_path)
             ],
-            capture_output=True, check=True, timeout=300
+            capture_output=True, check=True, timeout=1200
         )
         
         txt_files = list(TEMP_DIR.glob(f"{video_id}_temp_audio*.txt"))
@@ -178,7 +178,7 @@ def get_transcript(video_id: str) -> str:
         text_content = transcription_txt.read_text(encoding="utf-8")
         
         try:
-            mp3_path.unlink()
+            m4a_path.unlink()
             transcription_txt.unlink()
         except Exception as cleanup_err:
             print(f"Warning during temp cleanup: {cleanup_err}", file=sys.stderr)
@@ -186,6 +186,10 @@ def get_transcript(video_id: str) -> str:
         return text_content
     except Exception as buzz_err:
         print(f"Critical error obtaining transcript via Buzz: {buzz_err}", file=sys.stderr)
+        if hasattr(buzz_err, "stdout") and buzz_err.stdout:
+            print(f"Subprocess Stdout: {buzz_err.stdout}", file=sys.stderr)
+        if hasattr(buzz_err, "stderr") and buzz_err.stderr:
+            print(f"Subprocess Stderr: {buzz_err.stderr}", file=sys.stderr)
         return ""
 
 def main():

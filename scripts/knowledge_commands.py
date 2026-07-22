@@ -141,12 +141,44 @@ def run_find(query: str):
         print(f"- [[{name}]] -> {rel_path}")
     print("--------------------------------------------------------------------------------")
 
+def run_tokens():
+    brain_dir = Path(os.path.expanduser("~/.gemini/antigravity/brain"))
+    if not brain_dir.exists():
+        print("Antigravity brain directory not found.")
+        return
+    
+    # Find most recent transcript log
+    jsonl_files = list(brain_dir.glob("*/.system_generated/logs/transcript.jsonl"))
+    if not jsonl_files:
+        print("No conversation transcript log found.")
+        return
+        
+    latest_log = max(jsonl_files, key=lambda p: p.stat().st_mtime)
+    size_bytes = latest_log.stat().st_size
+    content = latest_log.read_text(encoding="utf-8", errors="ignore")
+    char_count = len(content)
+    words = len(content.split())
+    est_tokens = int(char_count / 3.8)
+    percent_1m = (est_tokens / 1_000_000) * 100
+    
+    print("\n=== ANTIGRAVITY CONTEXT WINDOW STATUS ===")
+    print(f"Transcript Log: {latest_log}")
+    print(f"Tokens Estimados: ~{est_tokens:,} tokens ({percent_1m:.1f}% de 1M)")
+    print(f"Caracteres: {char_count:,}")
+    print(f"Palabras: {words:,}")
+    print(f"Tamaño Log: {size_bytes / (1024*1024):.2f} MB ({size_bytes:,} bytes)")
+    print(f"USO DE CONTEXTO: {percent_1m:.1f}% del límite (1,000,000 tokens)")
+    print("=========================================\n")
+
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Advanced Knowledge Commands for Obsidian LLM Wiki")
     parser.add_argument("--trace", type=str, help="Run /trace on a specific topic")
     parser.add_argument("--emerge", action="store_true", help="Run /emerge to find implied ideas")
     parser.add_argument("--drift", action="store_true", help="Run /drift to compare intentions vs actions")
     parser.add_argument("--find", type=str, help="Search the vault for matching note names")
+    parser.add_argument("--tokens", action="store_true", help="Show current context window size and token count")
     
     args = parser.parse_args()
     
@@ -158,5 +190,8 @@ if __name__ == "__main__":
         run_drift()
     elif args.find:
         run_find(args.find)
+    elif args.tokens:
+        run_tokens()
     else:
         parser.print_help()
+

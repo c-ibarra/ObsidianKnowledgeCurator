@@ -17,11 +17,21 @@ When this skill is invoked via `/urlArticle <url>`, execute the following steps:
      - JSON metadata: `temp/fetched_data.json`
      - Clean text: `temp/fetched_data.txt`
 2. **Process Article Data:**
-   - Summarize and format the content into a structured markdown note in the `raw/` zone following the vault conventions (no YAML, with H1, author blockquote, and adding the `Processed: DD-MM-YYYY` or `Procesado: DD-MM-YYYY` metadata line using today's date).
-   - Identify 3-7 core concepts, check if they exist using search tools, and update/create their wiki files in the `wiki/` zone.
+   - **Quality Grading (Pre-Fetch Checklist)**:
+     - Read `MIN_TECHNICAL_SCORE` from `.env` (default: `60`).
+     - Read the first 3,000 characters of `temp/fetched_data.txt`.
+     - Grade the text (0-100 score) on **Information Density**, **Provenance/References**, and **Technical Level** using your LLM.
+     - If the score is below the threshold, output a detailed scorecard (Score, Criteria failed, Brief Content Summary) and ask the user: *"Do you want to proceed with curation anyway? (y/n)"*. If the user declines, abort execution.
+   - Summarize and format the content into a structured markdown note in the `raw/` zone following the vault conventions (no YAML, with H1, author blockquote, and adding the `Processed: DD-MM-YYYY` metadata line using today's date).
+   - Identify 3-7 core concepts, check if they exist, and update/create their wiki files in the `wiki/` zone.
+   - For every file created or modified in `raw/` or `wiki/`, run:
+     ```bash
+     uv tool run --from graphifyy python -c "import sys; from pathlib import Path; sys.path.append(str(Path.cwd())); from scripts.graphify_helper import update_note_in_graph; update_note_in_graph(Path('/absolute/path/to/note.md'))"
+     ```
 3. **Synchronize and Verify:**
    - Run the synchronization script:
      ```bash
      uv run python scripts/sync_vault.py
      ```
    - Report progress and show the modified notes to the user.
+
