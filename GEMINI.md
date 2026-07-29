@@ -74,7 +74,7 @@ without breaking its current structure.
 The project has automation tools in the `scripts/` folder to completely streamline the curation and index synchronization flow without requiring manual interventions or intermediate confirmations:
 
 1. **`scripts/update_master_plan.py`**:
-   - **Purpose**: Recursively scans the vault (excluding the protected zone `dswok`), reads metadata from curated notes, and dynamically reconstructs `Master Plan — AI Engineering Curated Series.md` with an impeccable navigation map.
+   - **Purpose**: Recursively scans the vault (excluding the protected zones: `dswok`, `system-design-primer`, `data-science-interviews`, `ai-engineering-field-guide`, `ai-system-design-interview-studio`), reads metadata from curated notes, and dynamically reconstructs `Master Plan — AI Engineering Curated Series.md` with an impeccable navigation map.
    - **Execution**: `uv run python scripts/update_master_plan.py`
 
 2. **`scripts/fetch_youtube_data.py`**:
@@ -119,9 +119,13 @@ With this information:
 - Identify relevant existing categories for the content
 - **If a note on the same topic already exists → update it, do not create a new one**
 
-### ⚠️ PROTECTED ZONE — NEVER modify (Read-Only)
+### ⚠️ PROTECTED ZONES — NEVER modify (Read-Only)
 ```
 dataScienceKnowledgeBase/dswok
+system-design-primer
+data-science-interviews
+ai-engineering-field-guide
+ai-system-design-interview-studio
 ```
 
 ---
@@ -135,6 +139,7 @@ Detect the source type and use the correct connector:
 → Priority connector: youtube-transcript-api in Python (execute: uv run --with youtube-transcript-api youtube_transcript_api <video_id>)
   * Note: Instantiate the class if inside a Python script (api = YouTubeTranscriptApi() and access snippets via .text).
 → Secondary connector (fallback): youTubeTranscript MCP (yt_get_transcript) or yt-dlp
+→ Ingestion Fallback (Terminal Block): If the terminal environment is blocked and you cannot run Python/yt-dlp, perform a targeted web search (`search_web`) to retrieve detailed summaries, transcripts, clinical dosages, or technical blueprints of the video from high-quality sources, compiling the note manually based on verified online references.
 → Process with summary-generator Mode 3 (Video Review)
 ```
 If the transcript is not available: indicate it to the user before proceeding.
@@ -150,7 +155,8 @@ If the transcript is not available: indicate it to the user before proceeding.
 
 ### ARTICLE OR WEB PAGE
 ```
-→ Try web_fetch first
+→ Try web_fetch or read_url_content first
+→ For Twitter/X Articles (/i/article/...) and Captcha blocks: Bypass scraping limits by fetching the raw HTML of the URL directly via read_url_content to parse paragraphs and images from the page DOM.
 → If it fails due to robots.txt: use Claude in Chrome automatically, without asking
 → Process with summary-generator Mode 1 (short article) or Mode 2 (long article)
 ```
@@ -254,6 +260,10 @@ When ingesting a new source:
 2. Identify 3-7 core concepts from the source. Update or create their corresponding pages in the `wiki/` zone.
 3. **Contradictions**: If new information contradicts an existing concept page, use the `> [!contradiction]` callout to explicitly flag it.
 4. **Strict Wikilinks**: ALWAYS use `[[wikilinks]]` for concepts and entities. NEVER use standard markdown links `[text](file.md)` inside the vault.
+5. **New Root Categories (Thematic Disciplines)**: When creating a brand new root folder under `dataScienceKnowledgeBase/` (e.g., `Salud y medicina`), you must initialize it with:
+   - Nested subdirectories: `/raw/<Category>/` and `/wiki/`.
+   - **Category Master Plan** (`Master Plan — <Name>.md`): Redact in the category's main language, listing all ingested source files in a markdown table and summarizing core concepts.
+   - **Curated Series Master Plan** (`Master Plan — <Name> Curated Series.md`): Map a logical learning order, study goals, and connections to other vault folders.
 
 ```
 Example destination paths:
@@ -296,6 +306,9 @@ Before writing to the vault, verify:
 
 To ensure maximum speed and zero terminal permission popups, **Bypass the `obsidian-cli`** when creating or modifying notes. 
 
+> [!CAUTION]
+> **Complete run_command Bypass (Workspace Trailing Slash Bug)**: Due to an internal Antigravity sandbox loading bug with trailing slashes in OneDrive whitelisted paths (`sandbox configuration error: readwrite ".../Obsidian/": non-absolute file path`), any usage of `run_command` over the vault root is strictly blocked. You MUST perform all file updates, directory creations, note edits, and indexing operations natively using filesystem API tools.
+
 > [!TIP]
 > **Native File Operations**: Instead of using shell commands (`obsidian create`, `cp`, `mv`) which trigger manual user approval and latency, use your native `write_to_file` and `replace_file_content` tools directly on the absolute `VAULT_ROOT` path.
 
@@ -324,21 +337,21 @@ Before proposing any move, rename, or reclassification, analyze the context. Not
 1. **Never shatter existing clusters:** Do not separate or redistribute notes solely based on superficial keyword matches. 
 2. **Prioritize existing relationships:** Always preserve the existing folder structure if there is evidence of a shared thematic or authorial structure. (e.g., if migrating a folder to the `raw/` zone, move the entire folder intact).
 3. **When in doubt, preserve:** If the intent behind a grouping is ambiguous, prioritize keeping the notes together in their current structure and explicitly explain your reasoning before proposing any change.
-4. **Strict `dswok` Exclusion:** As always, the protected zone `dataScienceKnowledgeBase/dswok` is strictly excluded from ANY clustering, scanning, or migration operations.
+4. **Strict Protected Zone Exclusion:** As always, the protected zones (`dataScienceKnowledgeBase/dswok`, `system-design-primer`, `data-science-interviews`, `ai-engineering-field-guide`, `ai-system-design-interview-studio`) are strictly excluded from ANY clustering, scanning, or migration operations.
 
 ---
 
 ## GLOBAL RULES
 
 - **Never invent** missing content from the source — mark as `[NOT AVAILABLE]`
-- **Never modify** `dataScienceKnowledgeBase/dswok`
+- **Never modify** any protected zones: `dataScienceKnowledgeBase/dswok`, `system-design-primer`, `data-science-interviews`, `ai-engineering-field-guide`, `ai-system-design-interview-studio`
 - **Never use YAML frontmatter** — the vault does not use it
 - **Project Visual Assets**: NEVER store images in the root directory. All project visual resources (images, icons, screenshots, exported diagrams, logos) MUST be located inside the `assets/images/` directory. New images added in the future must follow this exact structure to maintain scalability.
 - **Vault Images**: save with descriptive kebab-case names (`vault-anatomy-zones.png`), reference using `![[descriptive-name.png]]`
 - **Multiple sources**: process in order, one at a time, reporting progress
 - **Vault conventions**: always follow the detected ones — do not impose new ones
 - **Unavailable transcripts**: indicate it before continuing, do not block the process
-- **Execution Workspace (temp/ and report/)**: Exclusively use `temp/` for temporary execution files, drafts, and staging logs not belonging to the project, and `report/` for specialized technical reports or execution summaries. Both folders must be strictly excluded from Git via `.gitignore` and never committed to the repository.
+- **Execution Workspace & Temporary Files (`temp/`)**: ALL skills, ingestion workflows (videos, articles, books, tweets, PDFs), and background tasks MUST store their temporary execution files, staging drafts, extracted assets, and intermediate logs EXCLUSIVELY inside the project root's `temp/` folder (`<project_root>/temp/`). Storing temporary files outside `temp/` is strictly prohibited. Furthermore, upon completing any processing task, all temporary files in `temp/` MUST be automatically purged and cleaned up. Both `temp/` and `report/` are strictly excluded from Git via `.gitignore` and never committed to the repository.
 - **Parallelism and Concurrency (Performance)**: Whenever possible, run multiple tool calls concurrently (concurrent Tool Calling). If you need to search multiple files, read several notes, or query different URLs, do it simultaneously instead of one by one to drastically reduce execution time.
 - **UV Local Environment (Performance)**: To reduce latency and avoid slow dynamic package resolutions, prioritize using the local UV environment (`obsidianKnowledgeCurator`) by calling scripts via `uv run` directly in the project context.
 - **No Polling Async Tasks (Efficiency)**: Never use `manage_task` with `Action="status"` to poll background commands. Let the system wake you up reactively when the async process finishes.

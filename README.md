@@ -192,12 +192,15 @@ The vault is strictly divided into four zones to separate immutable sources from
 - Evaluates technical density against `MIN_TECHNICAL_SCORE`.
 - Writes curated summary to `raw/` and compiles 3-7 concept notes to `wiki/`.
 
-### 2. Layout-Aware Web Ingestion (`fetch_article_data.py`)
-- Leverages **Fetch MCP** as primary scraping engine.
-- Fallback: Local Chrome CDP WebSocket handshakes (`--remote-debugging-port=9222`) for Client-Side Rendered (CSR) pages (Substack, Medium, Gemini Shares).
-- Cleans HTML trees deterministically via `BeautifulSoup` into GitHub-Flavored Markdown.
+### 3. Non-Fiction Book Ingestion & Synthesis (`fetch_book_data.py` & `okc-bookSummary`)
+- **Automated Structure Parsing**: Ingests PDF, EPUB, DOCX, and TXT files, segmenting chapters and sanitizing text.
+- **Default Obsidian Vault Output**: Writes main book summaries and individual chapter notes (`Chapter XX — <Title>.md`) directly to `VAULT_ROOT/dataScienceKnowledgeBase/<Category>/raw/Books/`.
+- **Enforced Chapter Depth (1,600–2,650 words total)**: Requires 900–1,500 words for Section 3 (Enriched Summary Development), bringing the total chapter note length to 1,600–2,650 words for thorough technical depth.
+- **Visual Content & Mermaid.js Diagrams**: Reconstructs mindmaps, architecture flows, sequence diagrams, and embeds extracted figures (`assets/images/`).
+- **Decoupled Executable Skill Artifact**: Generates structured agent skills in `.agents/skills/<slug>/` (`SKILL.md`, `chapters/`, `flashcards.md`, `glossary.md`, `resources.md`, `patterns.md`, `cheatsheet.md`).
+- **Automatic Temporary File Cleanup**: Cleans up all working files in `temp/` via `--clean` upon completion.
 
-### 3. Structural Graph Sync (`graphify_helper.py` & `sync_vault.py`)
+### 4. Structural Graph Sync (`graphify_helper.py` & `sync_vault.py`)
 - Incrementally updates `graphify-out/graph.json` after every note edit.
 - Automatically regenerates `.agents/skills/obsidian-knowledge-curator/KNOWLEDGE.md` with updated concept links.
 - Rebuilds Category Master Plans and audits wikilink health via `vault_linter.py`.

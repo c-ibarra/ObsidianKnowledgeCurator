@@ -39,6 +39,10 @@ When the user starts a message with a slash command, you must immediately execut
 *   **`/okc-urlTwitter <url>`**
     *   *Purpose:* Ingest a Twitter/X post or video. It extracts post text and metadata, and if a video is present without subtitles, it automatically downloads the audio and transcribes it using Buzz CLI / Whisper. It curates the note in `raw/` (including `Processed/Procesado` date), compiles concepts in `wiki/`, and syncs the vault.
     *   *Execution:* Run `uv run python scripts/fetch_twitter_data.py --url "<url>"`. Once completed, read `temp/fetched_data.json` and `temp/fetched_data.txt`, generate the curated note in `raw/`, compile concepts in `wiki/`, and run `uv run python scripts/sync_vault.py`.
+*   **`/okc-book <input>`** / **`/okc-bookSummary <input>`**
+    *   *Purpose:* Ingest a non-fiction book or long document (PDF, EPUB, DOCX, TXT, MD) using the `okc-bookSummary` skill. It extracts structure, sanitizes text, segments chapters, synthesizes rich chapter notes (with anecdotes, metaphors, Mermaid mindmaps, key questions, and critical analysis), writes directly to the Obsidian Vault (`VAULT_ROOT`), compiles concepts in `wiki/`, purges temporary staging folders/files, and syncs the vault.
+    *   *Execution:* Run `uv run python scripts/fetch_book_data.py --input "<input>"`. Read `temp/fetched_book_data.json` and `temp/fetched_book_data.txt`, generate book notes and chapter files directly in `VAULT_ROOT/dataScienceKnowledgeBase/<Category>/raw/Books/`, compile concepts in `wiki/`, run `uv run python scripts/fetch_book_data.py --clean`, and run `uv run python scripts/sync_vault.py`.
+
 
 
 ## Formatting Guidelines

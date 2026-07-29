@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.7.0] - 2026-07-29
+
+### Added
+- **`okc-bookSummary` Non-Fiction Book Ingestion Pipeline**: Added non-fiction book ingestion pipeline and skill (`scripts/fetch_book_data.py` and `.agents/skills/okc-bookSummary/`). Supports PDF, EPUB, DOCX, TXT, and MD files.
+- **Default Obsidian Vault Integration**: Standardized default writing of book summaries, individual chapter notes (`Chapter XX — <Title>.md`), images, wiki concepts, and Master Plan updates directly to `VAULT_ROOT`.
+- **Enforced Chapter Depth (1,600–2,650 words)**: Configured word count rules requiring 900–1,500 words for Section 3 (Enriched Summary Development) and 1,600–2,650 words total per chapter note to ensure technical depth.
+- **Visual Content & Mermaid.js Diagrams**: Native Mermaid.js mindmaps, sequence diagrams, architecture flows, and extracted figure callouts in every chapter.
+- **Automatic Temporary File Cleanup**: Added `--clean` flag to `scripts/fetch_book_data.py` and automated deletion of temporary extraction files from `temp/` upon completion.
+- **Slash Commands Update**: Added `/okc-bookSummary` and `/okc-book` to `.agents/AGENTS.md` and project documentation.
+
 ## [2.6.0] - 2026-07-17
 
 ### Added

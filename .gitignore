@@ -30,7 +30,8 @@ temp_note.md
 .vscode/
 
 # Temporary Execution Workspace & Reports
-temp/
+temp/*
+!temp/.gitkeep
 report/
 graphify-out/
 
