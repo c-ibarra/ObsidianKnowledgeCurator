@@ -187,7 +187,7 @@ The vault is strictly divided into four zones to separate immutable sources from
 ## 🔄 End-to-End Workflow
 
 ### 1. Multimedia Ingestion (`fetch_youtube_data.py`)
-- Extracts audio streams (`m4a` format 140) via `yt-dlp` to bypass live DASH fragment limits.
+- Extracts audio streams (`m4a` format 140) via `yt-dlp` utilizing the `--live-from-start` parameter to bypass dynamic live DASH fragment limits.
 - Transcribes audio using `youtube-transcript-api` with fallback to local **Buzz CLI Whisper**.
 - Evaluates technical density against `MIN_TECHNICAL_SCORE`.
 - Writes curated summary to `raw/` and compiles 3-7 concept notes to `wiki/`.

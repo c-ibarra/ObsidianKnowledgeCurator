@@ -148,6 +148,7 @@ def get_transcript(video_id: str) -> str:
             [
                 "yt-dlp",
                 "-f", "140/bestaudio/best",
+                "--live-from-start",
                 "--no-warnings",
                 "-o", str(m4a_path),
                 url
