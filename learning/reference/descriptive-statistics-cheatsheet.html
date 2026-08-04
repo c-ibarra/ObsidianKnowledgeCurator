@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hoja de Referencia: Fórmulas y Conceptos Clave</title>
+    <link rel="stylesheet" href="../assets/style.css">
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+<body>
+
+    <h1>Hoja de Referencia: Estadística y Distribuciones</h1>
+    <p>Esta hoja de referencia rápida compila las ecuaciones y métricas de tendencia central y dispersión para su consulta en el desarrollo de modelos de Machine Learning.</p>
+
+    <h2>1. Medidas de Centralidad y Dispersión</h2>
+    <table border="1" cellpadding="10" cellspacing="0" style="width: 100%; border-collapse: collapse; border-color: #ddd;">
+        <thead>
+            <tr style="background-color: #f7f7f9;">
+                <th>Concepto</th>
+                <th>Ecuación</th>
+                <th>Caso de Uso / Observación</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><strong>Media (\(\mu\))</strong></td>
+                <td>\[ \mu = \frac{1}{N} \sum_{i=1}^{N} x_i \]</td>
+                <td>Sensible a outliers. Representa el valor esperado del sistema.</td>
+            </tr>
+            <tr>
+                <td><strong>Varianza (\(\sigma^2\))</strong></td>
+                <td>\[ \sigma^2 = \frac{1}{N} \sum_{i=1}^{N} (x_i - \mu)^2 \]</td>
+                <td>Promedio de desvíos al cuadrado. Mide volatilidad en unidades cuadráticas.</td>
+            </tr>
+            <tr>
+                <td><strong>Desviación Estándar (\(\sigma\))</strong></td>
+                <td>\[ \sigma = \sqrt{\sigma^2} \]</td>
+                <td>Dispersión en las unidades de medida originales de la variable.</td>
+            </tr>
+            <tr>
+                <td><strong>Mediana</strong></td>
+                <td>Valor central ordinal</td>
+                <td>Robusta ante valores atípicos y distribuciones sesgadas de cola pesada.</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h2>2. Distribuciones Frecuentes en Machine Learning</h2>
+    
+    <h3>Distribución Normal (Gaussiana)</h3>
+    <p>Muestras continuas distribuidas de forma simétrica. Ecuación:</p>
+    \[ f(x) = \frac{1}{\sigma \sqrt{2\pi}} e^{-\frac{1}{2}\left(\frac{x-\mu}{\sigma}\right)^2} \]
+    
+    <p><strong>Intervalos de Confianza Clásicos:</strong></p>
+    <ul>
+        <li>\(\mu \pm 1\sigma\) = 68.2% de los datos.</li>
+        <li>\(\mu \pm 2\sigma\) = 95.4% de los datos.</li>
+        <li>\(\mu \pm 3\sigma\) = 99.7% de los datos.</li>
+    </ul>
+
+    <h3>Distribución de Bernoulli</h3>
+    <p>Muestras discretas con solo dos estados posibles (0 o 1). Ecuación de probabilidad:</p>
+    \[ P(X = x) = p^x (1-p)^{1-x} \]
+    <p>Donde \(p\) es la probabilidad de éxito (clase 1) y \(1-p\) la de fracaso (clase 0). La media de una Bernoulli es \(p\), y su varianza es \(p(1-p)\).</p>
+
+    <footer>
+        <p>Estadística para Machine Learning · Workspace de Aprendizaje</p>
+    </footer>
+
+</body>
+</html>

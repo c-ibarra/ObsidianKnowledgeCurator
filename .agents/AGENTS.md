@@ -16,6 +16,9 @@ When the user starts a message with a slash command, you must immediately execut
 *   **`/okc-find <query>`**
     *   *Purpose:* Case-insensitive substring search for note titles.
     *   *Execution:* `uv run python scripts/knowledge_commands.py --find "<query>"`
+*   **`/okc-explore <concept>`**
+    *   *Purpose:* Explore a concept in the local graph index and view its direct relationships.
+    *   *Execution:* `uv run python scripts/knowledge_commands.py --explore "<concept>"`
 *   **`/getContextSize`**
     *   *Purpose:* Show current conversation context window size, character count, and estimated token count.
     *   *Execution:* `uv run python scripts/knowledge_commands.py --tokens`

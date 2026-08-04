@@ -9,6 +9,11 @@ import time
 from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
+PROJECT_DIR = Path(__file__).parent.parent
+sys.path.append(str(PROJECT_DIR / "scripts"))
+from safe_merge import safe_merge_markdown
+from density_grader import grade_technical_density
+
 # ==============================================================================
 # CONFIGURATION & .ENV LOADING
 # ==============================================================================
@@ -49,6 +54,10 @@ if not raw_gemini_key or "your-gemini-api-key" in raw_gemini_key:
     GEMINI_API_KEY = os.environ.get("GOOGLE_API_KEY", "")
 else:
     GEMINI_API_KEY = raw_gemini_key
+
+# Technical Density Configuration
+MIN_DENSITY = 0.5
+SKIP_LOW_DENSITY = False
 
 # ==============================================================================
 # GEMINI API CALLER WITH RETRIES
@@ -171,8 +180,39 @@ Original note content:
             # Remove the first line
             note_content = "\n".join(curated_text.strip().splitlines()[1:]).strip()
             
+        # Technical Density Grading
+        print(f"Grading technical density for {original_title}...")
+        density_res = grade_technical_density(note_content)
+        score = density_res.get("score", 1.0)
+        reason = density_res.get("reason", "")
+        print(f"Density Score: {score:.2f} | Reason: {reason}")
+        
+        if score < MIN_DENSITY:
+            if SKIP_LOW_DENSITY:
+                print(f"[Grader] Skipping low-density note: {original_title} (Score: {score:.2f})")
+                # Move notion original file to processed/ to prevent loops
+                processed_dir = NOTION_DIR / "processed" / raw_section
+                processed_dir.mkdir(parents=True, exist_ok=True)
+                shutil.move(str(file_path), str(processed_dir / file_path.name))
+                return original_title, False, f"Skipped: Technical density {score:.2f} is below threshold {MIN_DENSITY}."
+            else:
+                # Add warning callout and tag
+                warning_callout = f"> [!WARNING] Low Technical Density (Score: {score:.2f}/1.0)\n> **Grader feedback:** {reason}\n\n"
+                note_content = warning_callout + note_content
+                if "tags:" in note_content.lower():
+                    note_content = re.sub(r'((?:Tags|tags)\s*:\s*.*)', r'\1 #low-density', note_content)
+                else:
+                    note_content = note_content.replace("\n## ", "\n> Tags: #low-density\n\n## ", 1)
+
         # Ensure directories exist
         dest_file_path.parent.mkdir(parents=True, exist_ok=True)
+        if dest_file_path.exists():
+            try:
+                old_content = dest_file_path.read_text(encoding="utf-8")
+                note_content = safe_merge_markdown(old_content, note_content)
+                print(f"Incremental update: Semantically merged with existing note: {dest_file_path.name}")
+            except Exception as merge_err:
+                print(f"Warning: safe-merge failed for {dest_file_path.name}, overwriting: {merge_err}")
         dest_file_path.write_text(note_content, encoding="utf-8")
         
         # 2. Concept Compilation Pass (Wiki)
@@ -391,7 +431,15 @@ def main():
     parser.add_argument("--target-kb", default="Machine Learning", help="Target category folder name or absolute path.")
     parser.add_argument("--course-name", help="Course/resource name used inside raw/ and metadata (default: folder name of --notion-dir).")
     
+    # Technical Density arguments
+    parser.add_argument("--min-density", type=float, default=0.5, help="Minimum technical density score (0.0 to 1.0) below which note is flagged/skipped.")
+    parser.add_argument("--skip-low-density", action="store_true", help="Skip writing note entirely if it scores below --min-density.")
+    
     args = parser.parse_args()
+    
+    global MIN_DENSITY, SKIP_LOW_DENSITY
+    MIN_DENSITY = args.min_density
+    SKIP_LOW_DENSITY = args.skip_low_density
     
     if not args.execute and not args.dry_run:
         print("Error: You must specify either --dry-run or --execute.")

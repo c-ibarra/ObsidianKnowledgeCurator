@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lección 0001: Estadística Descriptiva y Distribuciones</title>
+    <link rel="stylesheet" href="../assets/style.css">
+    <!-- MathJax for rendering math formulas -->
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+<body>
+
+    <h1>Lección 0001: Estadística Descriptiva y Distribuciones</h1>
+    
+    <p>Bienvenido a la primera lección de tu programa de aprendizaje. El objetivo de hoy es comprender cómo los modelos de Machine Learning perciben, resumen y procesan la estructura física de tus datos.</p>
+
+    <h2>1. Tendencia Central: La Media frente a la Mediana</h2>
+    <p>Cuando un modelo predictivo analiza datos numéricos, busca establecer puntos de anclaje de tendencia central. El promedio aritmético, conocido como la <strong>Media</strong> (\(\mu\)), es el centro de gravedad de la distribución, pero es altamente sensible a valores atípicos (outliers).</p>
+    
+    <div class="note">
+        <strong>Ejemplo Real (FinTech)</strong>: Si 9 de tus comerciantes procesan \$1,000 USD al mes y un comerciante corporativo procesa \$1,000,000 USD, la media aritmética resultante será de aproximadamente \$100,900 USD. Sin embargo, la <strong>Mediana</strong> (el valor en la mitad exacta al ordenar los datos) se mantendrá estable en \$1,000 USD. 
+    </div>
+
+    <p>En Python, calcular ambas métricas empleando la biblioteca <code>pandas</code> es directo:</p>
+    <pre><code>import pandas as pd
+
+# Transacciones de ejemplo
+data = [1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000000]
+df = pd.Series(data)
+
+print("Media:", df.mean())      # Retorna: 100900.0
+print("Mediana:", df.median())  # Retorna: 1000.0</code></pre>
+
+    <h2>2. Dispersión: Varianza y Desviación Estándar</h2>
+    <p>La dispersión describe el "ancho" o variabilidad de los datos respecto a su centro. La <strong>Varianza</strong> (\(\sigma^2\)) promedia los desvíos al cuadrado de cada observación respecto a la media aritmética:</p>
+    
+    \[ \sigma^2 = \frac{1}{N} \sum_{i=1}^{N} (x_i - \mu)^2 \]
+
+    <p>Para recuperar las unidades originales de los datos (evitando que queden elevadas al cuadrado), aplicamos la raíz cuadrada para obtener la <strong>Desviación Estándar</strong> (\(\sigma\)):</p>
+
+    \[ \sigma = \sqrt{\sigma^2} \]
+
+    <h2>3. La Distribución Normal (Gaussiana)</h2>
+    <p>La distribución simétrica más importante en Machine Learning. Sigue la regla empírica del 68-95-99.7%:</p>
+    <ul>
+        <li>El <strong>68%</strong> de tus muestras se ubica en el intervalo \(\mu \pm 1\sigma\).</li>
+        <li>El <strong>95%</strong> de tus muestras se ubica en el intervalo \(\mu \pm 2\sigma\).</li>
+        <li>El <strong>99.7%</strong> de tus muestras se ubica en el intervalo \(\mu \pm 3\sigma\).</li>
+    </ul>
+
+    <p>Modelos paramétricos clásicos (como la Regresión Lineal o Naive Bayes) asumen formalmente esta distribución en los datos. Cuando las características están altamente sesgadas (cola larga), se suelen normalizar aplicando la función logarítmica:</p>
+    <pre><code>import numpy as np
+
+# Transformación logarítmica para estabilizar varianza
+df_normalized = np.log1p(df)</code></pre>
+
+    <h2>4. Comprueba tu Entendimiento</h2>
+    
+    <div class="quiz-container">
+        <h3>Prueba Corta</h3>
+        <p>¿Cuál de las siguientes medidas estadísticas es menos sensible a la presencia de valores atípicos (outliers) en un conjunto de datos transaccionales?</p>
+        
+        <button class="quiz-option" onclick="selectOption(false, this)">El promedio de los datos</button>
+        <button class="quiz-option" onclick="selectOption(true, this)">La mediana de los datos</button>
+        <button class="quiz-option" onclick="selectOption(false, this)">La varianza de los datos</button>
+        <button class="quiz-option" onclick="selectOption(false, this)">El máximo de los datos</button>
+        
+        <div id="feedback" class="quiz-feedback"></div>
+    </div>
+
+    <script>
+        function selectOption(isCorrect, element) {
+            const feedback = document.getElementById("feedback");
+            // Reset background colors
+            const options = document.querySelectorAll(".quiz-option");
+            options.forEach(opt => opt.style.backgroundColor = "#fff");
+            
+            if (isCorrect) {
+                element.style.backgroundColor = "#d0e7dd";
+                feedback.innerText = "¡Correcto! La mediana localiza el centro geométrico ordinal de la serie, haciendo que no sea desplazada por valores extremos de la cola.";
+                feedback.style.color = "#157347";
+            } else {
+                element.style.backgroundColor = "#f8d7da";
+                feedback.innerText = "Incorrecto. Intenta de nuevo prestando atención a qué medida ordena los datos en lugar de sumarlos.";
+                feedback.style.color = "#bb2d3b";
+            }
+            feedback.style.display = "block";
+        }
+    </script>
+
+    <footer>
+        <p>Lectura recomendada: Sección 2.1 de <em>An Introduction to Statistical Learning</em>. Si tienes dudas, consulta a tu tutor de IA.</p>
+    </footer>
+
+</body>
+</html>

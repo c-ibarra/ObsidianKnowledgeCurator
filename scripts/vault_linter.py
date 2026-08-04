@@ -102,87 +102,107 @@ def run_linter(target_kb: str = "dataScienceKnowledgeBase/AI Engineer", write_ch
     contradictions = []
     
     # 1. Build a global catalog of all notes/files in the entire vault
+    from vault_db import get_vault_db_connection
     global_note_names = set()
     global_note_paths = {}
-    for root, dirs, files in os.walk(VAULT_BASE):
-        if any(ignored in root for ignored in ["dswok", ".git", ".obsidian", ".agents"]):
-            continue
-        for file in files:
-            if file.endswith(".md"):
-                name = file[:-3]
-                global_note_names.add(name)
-                global_note_paths[name] = Path(root) / file
-            elif file.lower().endswith(('.png', '.jpg', '.jpeg', '.gif', '.webp', '.pdf', '.svg')):
-                global_note_names.add(file)
-                global_note_paths[file] = Path(root) / file
-
-    # 2. Gather all files in the target KB and their contents
-    for root, dirs, files in os.walk(target_kb_dir):
-        if any(ignored in root for ignored in ["dswok", ".git", ".obsidian", ".agents"]):
-            continue
-            
-        for file in files:
-            if file.endswith(".md"):
-                file_path = Path(root) / file
-                try:
-                    rel_path = file_path.relative_to(target_kb_dir)
-                except ValueError:
-                    rel_path = file_path.relative_to(VAULT_BASE)
-                file_name_no_ext = file[:-3]
-                
-                try:
-                    content = file_path.read_text(encoding="utf-8")
-                except Exception as e:
-                    print(f"Could not read {file}: {e}")
-                    continue
-                
-                all_notes[file_name_no_ext] = {
-                    "path": rel_path,
-                    "abs_path": file_path,
-                    "content": content,
-                    "incoming": [],
-                    "outgoing": []
-                }
-
-    # 3. Extract links and contradictions
-    link_pattern = re.compile(r'\[\[(.*?)\]\]')
     
-    for note_name, data in all_notes.items():
-        content = data["content"]
-        
-        # Check for contradictions
-        for line_num, line in enumerate(content.splitlines(), 1):
-            if "[!contradiction]" in line:
-                contradictions.append({
-                    "note": note_name,
-                    "abs_path": data["abs_path"],
-                    "line_num": line_num,
-                    "text": line.strip()
-                })
-        
-        # Extract wikilinks
-        links = link_pattern.findall(content)
-        for link in links:
-            # Clean link (remove alias if exists [[file|alias]])
-            target = link.split('|')[0].strip()
-            # Remove header hash if exists [[file#header]]
-            target = target.split('#')[0].strip()
+    try:
+        conn = get_vault_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("SELECT name, path FROM files WHERE path NOT LIKE '%dswok%'")
+        rows = cursor.fetchall()
+        for name, path_str in rows:
+            global_note_names.add(name)
+            global_note_paths[name] = VAULT_BASE / path_str
             
-            if not target:
-                continue
+        # 2. Gather notes in target KB from database
+        if target_kb.lower() == "all":
+            cursor.execute("SELECT name, path, content FROM files WHERE is_document = 1 AND path NOT LIKE '%dswok%'")
+        else:
+            cursor.execute("""
+                SELECT name, path, content FROM files 
+                WHERE is_document = 1 
+                  AND path LIKE ? 
+                  AND path NOT LIKE '%dswok%'
+            """, (f"{target_kb}/%",))
+        note_rows = cursor.fetchall()
+        
+        for name, path_str, content in note_rows:
+            file_path = VAULT_BASE / path_str
+            try:
+                rel_path = file_path.relative_to(target_kb_dir)
+            except ValueError:
+                rel_path = file_path.relative_to(VAULT_BASE)
                 
-            data["outgoing"].append(target)
-            all_links.add(target)
+            all_notes[name] = {
+                "path": rel_path,
+                "abs_path": file_path,
+                "content": content or "",
+                "incoming": [],
+                "outgoing": []
+            }
             
-            if target in link_graph:
-                link_graph[target].append(note_name)
+        # 3. Load contradictions from database
+        if target_kb.lower() == "all":
+            cursor.execute("""
+                SELECT c.file_path, c.line_num, c.text, f.name 
+                FROM contradictions c 
+                JOIN files f ON c.file_path = f.path
+                WHERE c.file_path NOT LIKE '%dswok%'
+            """)
+        else:
+            cursor.execute("""
+                SELECT c.file_path, c.line_num, c.text, f.name 
+                FROM contradictions c 
+                JOIN files f ON c.file_path = f.path
+                WHERE c.file_path LIKE ? 
+                  AND c.file_path NOT LIKE '%dswok%'
+            """, (f"{target_kb}/%",))
+        contra_rows = cursor.fetchall()
+        for file_path_str, line_num, text, name in contra_rows:
+            contradictions.append({
+                "note": name,
+                "abs_path": VAULT_BASE / file_path_str,
+                "line_num": line_num,
+                "text": text
+            })
+            
+        # 4. Load links from database
+        if target_kb.lower() == "all":
+            cursor.execute("""
+                SELECT l.source_path, l.target_name, f.name 
+                FROM links l
+                JOIN files f ON l.source_path = f.path
+                WHERE l.source_path NOT LIKE '%dswok%'
+            """)
+        else:
+            cursor.execute("""
+                SELECT l.source_path, l.target_name, f.name 
+                FROM links l
+                JOIN files f ON l.source_path = f.path
+                WHERE l.source_path LIKE ? 
+                  AND l.source_path NOT LIKE '%dswok%'
+            """, (f"{target_kb}/%",))
+        link_rows = cursor.fetchall()
+        
+        for source_path_str, target_name, source_name in link_rows:
+            if source_name in all_notes:
+                all_notes[source_name]["outgoing"].append(target_name)
+            all_links.add(target_name)
+            
+            if target_name in link_graph:
+                link_graph[target_name].append(source_name)
             else:
-                link_graph[target] = [note_name]
-
-    # Map incoming links
-    for target, sources in link_graph.items():
-        if target in all_notes:
-            all_notes[target]["incoming"].extend(sources)
+                link_graph[target_name] = [source_name]
+                
+        # Map incoming links
+        for target, sources in link_graph.items():
+            if target in all_notes:
+                all_notes[target]["incoming"].extend(sources)
+                
+        conn.close()
+    except Exception as e:
+        print(f"Error loading linter data from database: {e}")
 
     # 4. Analyze Health & Find Candidate Matches
     dead_links = []

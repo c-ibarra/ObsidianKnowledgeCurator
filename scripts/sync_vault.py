@@ -6,6 +6,8 @@ import argparse
 from pathlib import Path
 
 PROJECT_DIR = Path(__file__).parent.parent
+sys.path.append(str(PROJECT_DIR / "scripts"))
+from vault_db import get_vault_db_connection, sync_db
 
 def load_env():
     env_path = PROJECT_DIR / ".env"
@@ -59,6 +61,18 @@ def run_graphify_helper() -> bool:
         print(f"=== ERROR: Graphify update failed with code {proc.returncode} ===\n", file=sys.stderr)
         return False
 
+def run_database_sync() -> bool:
+    print("=== Synchronizing SQLite Index Database ===")
+    try:
+        conn = get_vault_db_connection()
+        sync_db(VAULT_BASE, conn)
+        conn.close()
+        print("=== Database sync completed successfully ===\n")
+        return True
+    except Exception as e:
+        print(f"=== ERROR: Database sync failed: {e} ===\n", file=sys.stderr)
+        return False
+
 def main():
     parser = argparse.ArgumentParser(description="Vault Sync & Integrity Checker")
     parser.add_argument("--target-kb", default="dataScienceKnowledgeBase/AI Engineer", help="Target knowledge base folder relative to vault root, or 'all'")
@@ -66,6 +80,11 @@ def main():
 
     print("================================================================================")
     print("VAULT SYNC & INTEGRITY CHECK")
+    print("================================================================================")
+    
+    # 0. Sync SQLite database index
+    if not run_database_sync():
+        sys.exit(1)
     print("================================================================================")
     
     categories = []

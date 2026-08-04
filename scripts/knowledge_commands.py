@@ -2,6 +2,8 @@
 import os
 import argparse
 import subprocess
+import json
+import urllib.parse
 from pathlib import Path
 
 # ==============================================================================
@@ -29,24 +31,25 @@ except ImportError:
 
 def gather_vault_context(limit=100):
     """Gather text from recent/relevant notes to serve as context."""
+    from vault_db import get_vault_db_connection
     notes = []
-    # Collect notes in AI Engineer dir
-    if AI_ENGINEER_DIR.exists():
-        count = 0
-        for root, dirs, files in os.walk(AI_ENGINEER_DIR):
-            if "dswok" in root:
-                continue
-            for file in files:
-                if file.endswith(".md"):
-                    if count >= limit:
-                        break
-                    file_path = Path(root) / file
-                    try:
-                        content = file_path.read_text(encoding="utf-8")
-                        notes.append(f"--- Note: {file} ---\n{content[:2000]}\n")
-                        count += 1
-                    except:
-                        pass
+    try:
+        conn = get_vault_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("""
+            SELECT name, content FROM files 
+            WHERE is_document = 1 
+              AND path LIKE 'dataScienceKnowledgeBase/AI Engineer/%'
+              AND path NOT LIKE '%dswok%'
+            LIMIT ?
+        """, (limit,))
+        rows = cursor.fetchall()
+        for name, content in rows:
+            if content:
+                notes.append(f"--- Note: {name}.md ---\n{content[:2000]}\n")
+        conn.close()
+    except Exception as e:
+        print(f"Error gathering context from database: {e}")
     return "\n".join(notes)
 
 def run_trace(topic: str):
@@ -116,21 +119,23 @@ Be blunt. Catch self-deception.
     print(result)
 def run_find(query: str):
     print(f"Searching vault for notes matching: '{query}'...")
-    query_lower = query.lower()
+    from vault_db import get_vault_db_connection
     matches = []
-    
-    if VAULT_BASE.exists():
-        for root, dirs, files in os.walk(VAULT_BASE):
-            if any(p in root for p in ["dswok", ".obsidian", ".git", ".trash", ".smart-env"]):
-                continue
-            for file in files:
-                if file.endswith(".md"):
-                    file_name_no_ext = file[:-3]
-                    if query_lower in file_name_no_ext.lower():
-                        file_path = Path(root) / file
-                        rel_path = file_path.relative_to(VAULT_BASE)
-                        matches.append((file_name_no_ext, rel_path))
-                        
+    try:
+        conn = get_vault_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("""
+            SELECT name, path FROM files 
+            WHERE is_document = 1 
+              AND name LIKE ? 
+              AND path NOT LIKE '%dswok%'
+        """, (f"%{query}%",))
+        matches = cursor.fetchall()
+        conn.close()
+    except Exception as e:
+        print(f"Error searching database: {e}")
+        return
+        
     if not matches:
         print("No matching notes found.")
         return
@@ -172,12 +177,253 @@ def run_tokens():
 
 
 
+def get_note_summary(file_path: Path) -> str:
+    if not file_path.exists():
+        return "[File not found]"
+    try:
+        content = file_path.read_text(encoding="utf-8")
+        lines = content.splitlines()
+        
+        # Check if there is a Key Takeaways section
+        takeaways = []
+        in_takeaways = False
+        for line in lines:
+            if line.startswith("## 📌 Key Takeaways"):
+                in_takeaways = True
+                continue
+            elif line.startswith("## ") and in_takeaways:
+                break
+            if in_takeaways:
+                if line.strip():
+                    takeaways.append(line.strip())
+        
+        if takeaways:
+            return "\n".join(takeaways[:5]) # limit to 5 lines
+            
+        # Fallback: extract the first blockquote description or first paragraph
+        fallback_lines = []
+        for line in lines:
+            if line.startswith("# "):
+                continue
+            if line.startswith(">"):
+                # source/metadata blockquote
+                continue
+            if line.strip():
+                fallback_lines.append(line.strip())
+                if len(fallback_lines) >= 3:
+                    break
+        return "\n".join(fallback_lines)
+    except Exception as e:
+        return f"[Error reading summary: {e}]"
+
+def get_note_summary_from_db_or_file(rel_path_str: str, fs_path: Path) -> str:
+    from vault_db import get_vault_db_connection
+    try:
+        conn = get_vault_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("SELECT content FROM files WHERE path = ?", (rel_path_str,))
+        row = cursor.fetchone()
+        conn.close()
+        if row and row[0]:
+            content = row[0]
+            lines = content.splitlines()
+            takeaways = []
+            in_takeaways = False
+            for line in lines:
+                if line.startswith("## 📌 Key Takeaways"):
+                    in_takeaways = True
+                    continue
+                elif line.startswith("## ") and in_takeaways:
+                    break
+                if in_takeaways:
+                    if line.strip():
+                        takeaways.append(line.strip())
+            
+            if takeaways:
+                return "\n".join(takeaways[:5])
+                
+            fallback_lines = []
+            for line in lines:
+                if line.startswith("# "):
+                    continue
+                if line.startswith(">"):
+                    continue
+                if line.strip():
+                    fallback_lines.append(line.strip())
+                    if len(fallback_lines) >= 3:
+                        break
+            return "\n".join(fallback_lines)
+    except Exception:
+        pass
+    return get_note_summary(fs_path)
+
+def run_explore(concept: str):
+    graph_path = PROJECT_DIR / "graphify-out" / "graph.json"
+    if not graph_path.exists():
+        print(f"Error: Graphify index not found at {graph_path}. Run /okc-sync or python scripts/graphify_helper.py first.")
+        return
+        
+    try:
+        with open(graph_path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+    except Exception as e:
+        print(f"Error loading graph.json: {e}")
+        return
+        
+    nodes = data.get("nodes", [])
+    links = data.get("links", [])
+    
+    concept_lower = concept.lower()
+    matched_node = None
+    
+    # Try exact match (case-insensitive) on label
+    for n in nodes:
+        label = n.get("label", "")
+        if label.lower() == concept_lower or n.get("id", "").lower() == concept_lower:
+            matched_node = n
+            break
+            
+    # If no exact match, try substring match on label
+    if not matched_node:
+        substring_matches = []
+        for n in nodes:
+            label = n.get("label", "")
+            if concept_lower in label.lower():
+                substring_matches.append(n)
+        
+        if not substring_matches:
+            print(f"No concept found matching '{concept}'.")
+            return
+            
+        if len(substring_matches) == 1:
+            matched_node = substring_matches[0]
+        else:
+            print(f"Ambiguous query '{concept}'. Did you mean one of these?")
+            for match in substring_matches[:10]:
+                print(f"- {match.get('label')} ({match.get('file_type')})")
+            if len(substring_matches) > 10:
+                print(f"... and {len(substring_matches) - 10} more.")
+            return
+
+    # Process matched node
+    node_id = matched_node.get("id")
+    label = matched_node.get("label")
+    file_type = matched_node.get("file_type", "unknown")
+    source_file = matched_node.get("source_file", "")
+    
+    fs_path = None
+    obsidian_uri = None
+    
+    if source_file:
+        if source_file.startswith("vault://"):
+            rel_path = source_file[len("vault://"):]
+            fs_path = VAULT_BASE / rel_path
+            obsidian_uri = f"obsidian://open?vault={urllib.parse.quote(VAULT_BASE.name)}&file={urllib.parse.quote(rel_path)}"
+        elif source_file.startswith("project://"):
+            rel_path = source_file[len("project://"):]
+            fs_path = PROJECT_DIR / rel_path
+            obsidian_uri = f"file://{fs_path}"
+        else:
+            fs_path = Path(source_file)
+            obsidian_uri = f"file://{fs_path}"
+
+    print(f"\n================================================================================")
+    print(f"EXPLORE CONCEPT: {label}")
+    print(f"================================================================================")
+    print(f"Type: {file_type.upper()}")
+    if source_file:
+        print(f"Source: {source_file}")
+    if obsidian_uri:
+        print(f"Open Link: {obsidian_uri}")
+    print("--------------------------------------------------------------------------------")
+    
+    if fs_path:
+        rel_path_str = ""
+        if source_file and source_file.startswith("vault://"):
+            rel_path_str = source_file[len("vault://"):]
+        elif source_file and source_file.startswith("project://"):
+            rel_path_str = source_file[len("project://"):]
+            
+        summary = get_note_summary_from_db_or_file(rel_path_str, fs_path)
+        print("Summary / Key Takeaways:")
+        print(summary)
+    else:
+        print("Summary / Key Takeaways: [File not found or no source location]")
+        
+    print("--------------------------------------------------------------------------------")
+    
+    incoming = []
+    outgoing = []
+    
+    id_to_node = {n.get("id"): n for n in nodes}
+    
+    for link in links:
+        src_id = link.get("source")
+        tgt_id = link.get("target")
+        rel = link.get("relation", "linked_to")
+        
+        if src_id == node_id:
+            nbr_node = id_to_node.get(tgt_id)
+            if nbr_node:
+                outgoing.append((rel, nbr_node))
+        elif tgt_id == node_id:
+            nbr_node = id_to_node.get(src_id)
+            if nbr_node:
+                incoming.append((rel, nbr_node))
+                
+    print("Direct Neighbors / Relationships:")
+    
+    def format_rel(rel_type: str, nbr: dict, is_outgoing: bool) -> str:
+        nbr_label = nbr.get("label", "[Unknown]")
+        nbr_type = nbr.get("file_type", "unknown")
+        nbr_sf = nbr.get("source_file", "")
+        
+        if is_outgoing:
+            rel_label = f"--> ({rel_type}) -->"
+        else:
+            if rel_type == "contains":
+                rel_label = "<-- (contained_in) <--"
+            elif rel_type == "calls":
+                rel_label = "<-- (called_by) <--"
+            elif rel_type == "references":
+                rel_label = "<-- (referenced_by) <--"
+            elif rel_type == "rationale_for":
+                rel_label = "<-- (has_rationale) <--"
+            else:
+                rel_label = f"<-- ({rel_type}_of) <--"
+                
+        nbr_uri = ""
+        if nbr_sf:
+            if nbr_sf.startswith("vault://"):
+                nrp = nbr_sf[len("vault://"):]
+                nbr_uri = f"obsidian://open?vault={urllib.parse.quote(VAULT_BASE.name)}&file={urllib.parse.quote(nrp)}"
+            elif nbr_sf.startswith("project://"):
+                nrp = nbr_sf[len("project://"):]
+                nbr_uri = f"file://{PROJECT_DIR / nrp}"
+                
+        uri_str = f" | [Open Link]({nbr_uri})" if nbr_uri else ""
+        return f"- {rel_label} [[{nbr_label}]] ({nbr_type}){uri_str}"
+
+    if not incoming and not outgoing:
+        print("  (No direct connections found in the graphify index)")
+    else:
+        outgoing_sorted = sorted(outgoing, key=lambda x: x[1].get("label", "").lower())
+        incoming_sorted = sorted(incoming, key=lambda x: x[1].get("label", "").lower())
+        
+        for rel_type, nbr in outgoing_sorted:
+            print(format_rel(rel_type, nbr, is_outgoing=True))
+        for rel_type, nbr in incoming_sorted:
+            print(format_rel(rel_type, nbr, is_outgoing=False))
+            
+    print("================================================================================\n")
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Advanced Knowledge Commands for Obsidian LLM Wiki")
     parser.add_argument("--trace", type=str, help="Run /trace on a specific topic")
     parser.add_argument("--emerge", action="store_true", help="Run /emerge to find implied ideas")
     parser.add_argument("--drift", action="store_true", help="Run /drift to compare intentions vs actions")
     parser.add_argument("--find", type=str, help="Search the vault for matching note names")
+    parser.add_argument("--explore", type=str, help="Explore a concept in the local graph index")
     parser.add_argument("--tokens", action="store_true", help="Show current context window size and token count")
     
     args = parser.parse_args()
@@ -190,6 +436,8 @@ if __name__ == "__main__":
         run_drift()
     elif args.find:
         run_find(args.find)
+    elif args.explore:
+        run_explore(args.explore)
     elif args.tokens:
         run_tokens()
     else:

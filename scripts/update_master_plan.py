@@ -1,7 +1,11 @@
 #!/usr/bin/env python3
 import os
 import re
+import sys
 from pathlib import Path
+
+PROJECT_DIR = Path(__file__).parent.parent
+sys.path.append(str(PROJECT_DIR / "scripts"))
 
 import argparse
 
@@ -117,23 +121,34 @@ def rebuild_master_plan(target_kb: str = "dataScienceKnowledgeBase/AI Engineer")
     master_plan_title_part = get_master_plan_title(target_kb)
     master_plan_path = vault_base_dir / f"Master Plan — {master_plan_title_part} Curated Series.md"
     
-    print(f"Scanning for curated notes in: {vault_base_dir}")
+    from vault_db import get_vault_db_connection
     notes = []
-    
-    # Recursive search
-    for root, dirs, files in os.walk(vault_base_dir):
-        # Exclude dswok zone strictly
-        if "dswok" in root or "dswok" in dirs:
-            if "dswok" in dirs:
-                dirs.remove("dswok")
-            continue
-            
-        for file in files:
-            if file.endswith(".md"):
-                file_path = Path(root) / file
-                note_data = parse_curated_note(file_path, vault_base_dir)
-                if note_data:
-                    notes.append(note_data)
+    try:
+        conn = get_vault_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("""
+            SELECT name, author, category, type, pub_date, path, content FROM files
+            WHERE is_document = 1
+              AND path LIKE ?
+              AND path NOT LIKE '%dswok%'
+              AND name NOT LIKE '%Master Plan%'
+              AND name NOT LIKE '%plan%'
+        """, (f"{target_kb}/%",))
+        rows = cursor.fetchall()
+        for name, author, category_val, content_type, pub_date, path_str, content in rows:
+            if not content or ">" not in content or "# " not in content:
+                continue
+            notes.append({
+                "note_link": f"[[{name}]]",
+                "creator": author,
+                "category": category_val,
+                "type": content_type,
+                "pub_date": pub_date,
+                "path": VAULT_ROOT / path_str
+            })
+        conn.close()
+    except Exception as e:
+        print(f"Error loading master plan data from database: {e}")
 
     # Sort notes by category then note name to keep it structured
     notes.sort(key=lambda x: (x["category"], x["note_link"]))

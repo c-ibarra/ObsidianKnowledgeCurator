@@ -27,7 +27,7 @@ def fetch_via_mcp(url: str) -> str:
     print(f"Attempting to fetch via mcp-server-fetch for URL: {url}...", file=sys.stderr)
     try:
         proc = subprocess.Popen(
-            ["uvx", "mcp-server-fetch"],
+            ["uv", "run", "scripts/run_fetch.py"],
             stdin=subprocess.PIPE,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
