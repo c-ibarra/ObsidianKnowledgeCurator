@@ -57,16 +57,27 @@ Before any source (YouTube video, Web article, Tweet) is written to the vault, a
 
 If the composite score falls below `MIN_TECHNICAL_SCORE` (configured in `.env`, default: `60`), ingestion halts, presenting a detailed scorecard and summary to the user for explicit override confirmation.
 
-### 2. Zero-Cost Offline Graphify Indexing (`graphify_helper.py`)
-To enable graph-aware context retrieval across 13,000+ notes without incurring API costs:
+### 2. Zero-Cost Offline Graphify Indexing & Hybrid Mapper (`graphify_mapper.py`)
+To enable graph-aware context retrieval across 13,000+ notes without incurring API costs or latency penalties:
 - **AST & Wikilink Parser**: Uses local Python regex and Markdown AST parsing to extract document headings, parent-child nesting, and `[[wikilinks]]`.
-- **Offline Graph Generation**: Populates `graphify-out/graph.json` locally without calling external LLM APIs ($0.00 cost).
+- **Hybrid Local Context Engine (`GraphifyMapper`)**: Pre-predicts target `raw/` categories and matches existing `wiki/` concepts (<50ms latency, $0.00 token cost) directly from `graphify-out/graph.json`. It falls back to lightweight LLM queries only if local graph matching confidence drops below 70%.
+- **Injected Ingestion Context**: Automatically injects `"graphify_context"` objects into `temp/fetched_data.json` across all ingestion scripts (`fetch_article_data.py`, `fetch_youtube_data.py`, `fetch_twitter_data.py`, `fetch_book_data.py`).
 - **dswok Integration**: Indexes protected external knowledge directories (`dataScienceKnowledgeBase/dswok`) as a read-only information graph without modifying any files within them.
 
-### 3. Decoupled Skill Factory (`SKILL.md` vs `KNOWLEDGE.md`)
+### 3. Podcast & Audio Ingestion Pipeline (`/okc-urlPodcast` & `fetch_podcast_data.py`)
+- **Multi-Platform Support**: Ingests podcasts from Siemens.FM, Spotify, Apple Podcasts, RSS feeds, YouTube audio, and direct `.mp3`/`.m4a` files using `yt-dlp` and `curl`.
+- **Offline Whisper Transcription**: Uses local **Buzz CLI** (`/Applications/Buzz.app/Contents/MacOS/Buzz`) to transcribe audio tracks offline without external API costs.
+
+### 4. 3-Tier Scraping Fallbacks & Audio Auto-Detection (`fetch_article_data.py`)
+- **Audio Redirection**: Automatically detects podcast/audio URLs or HTML `og:audio` tags and delegates execution to `fetch_podcast_data.py`.
+- **Tier 1 (Fast Extraction)**: Uses `mcp-server-fetch` or `trafilatura`.
+- **Tier 2 (Browser User-Agent & SSL Bypass)**: Automatically escalates to DOM parsing with custom User-Agents and SSL verification bypass when encountering paywalls, captchas, LinkedIn, or Medium restrictions.
+- **Tier 3 (Web Search Fallback)**: Uses `search_web` to compile verified summaries if a page is 100% inaccessible.
+
+### 5. Decoupled Skill Factory (`SKILL.md` vs `KNOWLEDGE.md`)
 To prevent system prompt inflation and context degradation:
 - **Behavior Prompt (`SKILL.md`)**: Contains pure agent execution rules, wikilink mandates, and non-hallucination constraints.
-- **Compiled Static Database (`KNOWLEDGE.md`)**: An automatically regenerated index containing ~524+ concept cards with absolute file links across the vault.
+- **Compiled Static Database (`KNOWLEDGE.md`)**: An automatically regenerated index containing ~560+ concept cards with absolute file links across the vault.
 
 ---
 
@@ -186,11 +197,17 @@ The vault is strictly divided into four zones to separate immutable sources from
 
 ## 🔄 End-to-End Workflow
 
-### 1. Multimedia Ingestion (`fetch_youtube_data.py`)
-- Extracts audio streams (`m4a` format 140) via `yt-dlp` utilizing the `--live-from-start` parameter to bypass dynamic live DASH fragment limits.
-- Transcribes audio using `youtube-transcript-api` with fallback to local **Buzz CLI Whisper**.
+### 1. Multimedia & Podcast Ingestion (`fetch_youtube_data.py` & `fetch_podcast_data.py`)
+- **YouTube**: Extracts audio streams (`m4a` format 140) via `yt-dlp` utilizing the `--live-from-start` parameter to bypass dynamic live DASH fragment limits. Transcribes audio using `youtube-transcript-api` with fallback to local **Buzz CLI Whisper**.
+- **Podcasts & Audio (`/okc-urlPodcast`)**: Ingests Siemens.FM, Spotify, Apple Podcasts, RSS feeds, or direct `.mp3`/`.m4a` files. Downloads audio tracks via `yt-dlp`/`curl` and transcribes them using local **Buzz CLI Whisper**.
 - Evaluates technical density against `MIN_TECHNICAL_SCORE`.
+- Pre-calculates `"graphify_context"` via `GraphifyMapper` to select raw target categories and link existing wiki concept notes.
 - Writes curated summary to `raw/` and compiles 3-7 concept notes to `wiki/`.
+
+### 2. Resilient Web Article Ingestion (`fetch_article_data.py` & `/okc-urlArticle`)
+- **Audio Auto-Detection**: Automatically detects audio URLs or `og:audio` tags and delegates to `fetch_podcast_data.py`.
+- **3-Tier Fallback Chain**: Tier 1 (`mcp-server-fetch`), Tier 2 (DOM extraction with custom browser User-Agent and SSL bypass for restricted sites like LinkedIn/Medium), Tier 3 (search-backed compilation).
+- Pre-calculates `"graphify_context"` via `GraphifyMapper`.
 
 ### 3. Non-Fiction Book Ingestion & Synthesis (`fetch_book_data.py` & `okc-bookSummary`)
 - **Automated Structure Parsing**: Ingests PDF, EPUB, DOCX, and TXT files, segmenting chapters and sanitizing text.

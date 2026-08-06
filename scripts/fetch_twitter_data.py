@@ -191,9 +191,16 @@ def main():
     metadata = get_twitter_metadata(args.url)
     transcript = get_twitter_transcript(args.url)
     
+    try:
+        from scripts.graphify_mapper import map_context_with_graphify
+        graphify_ctx = map_context_with_graphify(metadata.get("title", "Twitter Post"), transcript[:2000])
+    except Exception as err:
+        graphify_ctx = {"suggested_category": "AI Safety & Governance", "error": str(err)}
+
     data = {
         "url": args.url,
-        "metadata": metadata
+        "metadata": metadata,
+        "graphify_context": graphify_ctx
     }
     
     output_path = args.output

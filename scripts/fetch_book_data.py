@@ -56,12 +56,19 @@ def main() -> None:
     temp_dir = Path("temp")
     temp_dir.mkdir(exist_ok=True)
 
+    try:
+        from scripts.graphify_mapper import map_context_with_graphify
+        graphify_ctx = map_context_with_graphify(input_path.stem, clean_text[:2000])
+    except Exception as err:
+        graphify_ctx = {"suggested_category": "AI Safety & Governance", "error": str(err)}
+
     json_data = {
         "slug": args.slug,
         "filename": input_path.name,
         "total_tokens": total_tokens,
         "chapters_count": len(chapters),
-        "chapters": chapters
+        "chapters": chapters,
+        "graphify_context": graphify_ctx
     }
 
     (temp_dir / "fetched_book_data.json").write_text(json.dumps(json_data, indent=2, ensure_ascii=False), encoding="utf-8")

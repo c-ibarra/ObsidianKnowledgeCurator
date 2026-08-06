@@ -36,6 +36,9 @@ When the user starts a message with a slash command, you must immediately execut
 *   **`/okc-urlArticle <url>`**
     *   *Purpose:* Fetch content from an article or web page, curate it in `raw/`, compile concepts in `wiki/`, and sync the vault.
     *   *Execution:* Run `uv run python scripts/fetch_article_data.py --url "<url>"`. Once completed, read `temp/fetched_data.json` and `temp/fetched_data.txt`, generate the curated note in `raw/`, compile concepts in `wiki/`, and run `uv run python scripts/sync_vault.py`.
+*   **`/okc-urlPodcast <url>`**
+    *   *Purpose:* Ingest a podcast episode or audio link, transcribe audio using Buzz CLI (Whisper), map Graphify context, curate note in `raw/`, compile concepts in `wiki/`, and sync the vault.
+    *   *Execution:* Run `uv run python scripts/fetch_podcast_data.py --url "<url>"`. Once completed, read `temp/fetched_data.json` and `temp/fetched_data.txt`, generate the curated note in `raw/`, compile concepts in `wiki/`, and run `uv run python scripts/sync_vault.py`.
 *   **`/okc-urlPlaylist <url>`**
     *   *Purpose:* Ingest an entire YouTube playlist, curate each video sequentially in `raw/` and `wiki/`, and sync the vault.
     *   *Execution:* Fetch the list of all video IDs in the playlist, process each video sequentially (downloading the transcript, curating it in `raw/`, and updating `wiki/`), and run `uv run python scripts/sync_vault.py`.

@@ -203,9 +203,16 @@ def main():
     details = get_video_details(video_id)
     transcript = get_transcript(video_id)
     
+    try:
+        from scripts.graphify_mapper import map_context_with_graphify
+        graphify_ctx = map_context_with_graphify(details.get("title", ""), transcript[:2000])
+    except Exception as err:
+        graphify_ctx = {"suggested_category": "AI Safety & Governance", "error": str(err)}
+
     data = {
         "video_id": video_id,
-        "metadata": details
+        "metadata": details,
+        "graphify_context": graphify_ctx
     }
     
     output_path = args.output

@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.8.0] - 2026-08-06
+
+### Added
+- **`GraphifyMapper` Local Context Engine (`scripts/graphify_mapper.py`)**: Implemented a hybrid zero-token local context mapper that queries `graphify-out/graph.json` to predict target `raw/` category directories and detect existing `wiki/` concepts (<50ms latency, $0.00 LLM token cost). Falls back to a lightweight LLM query only when local confidence is below 70%.
+- **Podcast & Audio Ingestion Pipeline (`/okc-urlPodcast` & `scripts/fetch_podcast_data.py`)**: Added dedicated podcast and audio processing using `yt-dlp` + Buzz CLI (Whisper) for local offline transcription. Supports Siemens.FM, Spotify, Apple Podcasts, RSS feeds, YouTube audio, and direct `.mp3`/`.m4a` files.
+- **`okc-urlPodcast` Skill & Slash Command**: Added `.agents/skills/okc-urlPodcast/SKILL.md` and registered `/okc-urlPodcast <url>` in `.agents/AGENTS.md`.
+- **3-Tier Scraping Fallback Chain (`scripts/fetch_article_data.py`)**: Upgraded article scraping to a 3-tier fallback pipeline (Tier 1: `mcp-server-fetch`/`trafilatura`, Tier 2: Browser User-Agent DOM parsing with SSL bypass for restricted sites like LinkedIn, Medium, and captchas, Tier 3: Search-backed web compilation fallback). Includes auto-redirections for podcast and audio URLs.
+- **Graphify Context Enrichment Across Ingestion Scripts**: Updated `fetch_article_data.py`, `fetch_youtube_data.py`, `fetch_twitter_data.py`, and `fetch_book_data.py` to automatically inject pre-calculated `"graphify_context"` objects into `temp/fetched_data.json`, cutting curation LLM tokens and latency.
+
 ## [2.7.0] - 2026-07-29
 
 ### Added
