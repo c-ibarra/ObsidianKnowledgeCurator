@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.10.0] - 2026-08-15
+
+### Added
+- **High-Density Actionable Synthesis (HDAS) Standard for Books (`okc-bookSummary`)**: Upgraded the book curation architecture to a 7-section modular structure combining continuous narrative depth with active learning tools (Tesis Central & Insight en 1 Frase, Preguntas de Indagación, Desarrollo Enriquecido con Modelos Mentales, Callouts Visuales de Metáfora/Cita/Trampa Común, Smart Cross-Domain Commentary, Guía de Aplicación Práctica con retos de 15 minutos, y Takeaway Ejecutivo en 1 Frase).
+- **AnyDoc Document Ingestion Pipeline (`/okc-doc` & `scripts/fetch_doc_data.py`)**: Added native headless ingestion for office documents and formats (`.docx`, `.pptx`, `.xlsx`, `.epub`, `.pdf`, `.odt`, `.csv`) using `src/agent_tools/anydoc_engine.py`, extracting images directly to `<VAULT_ROOT>/assets/images/`.
+- **Full Book Curation & Master Note Architecture**: Ingested and curated Kai-Fu Lee's *AI Superpowers* (*Superpotencias de la Inteligencia Artificial*) with 10 HDAS chapters, executive master note, and cross-linked domain concepts in `dataScienceKnowledgeBase/Machine Learning/raw/books/`.
+- **Knowledge Concept Synthesis**: Curated and cross-linked domain concepts in `wiki/`: `MomentoSputnik.md`, `EmprendedoresGladiadores.md`, `CuatroOlasIA.md`, `ModeloOMO.md`, `EstipendioInversionSocial.md`, and `SimbiosisHombreMaquina.md`.
+
 ## [2.9.0] - 2026-08-07
 
 ### Added

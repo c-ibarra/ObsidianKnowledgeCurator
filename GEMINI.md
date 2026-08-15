@@ -95,6 +95,14 @@ The project has automation tools in the `scripts/` folder to completely streamli
    - **Purpose**: Generic and decoupled Notion importer. Curates, formats, compiles wiki concepts, and updates Master Plans dynamically for any Notion folder, category path, or course name.
    - **Execution**: `uv run python scripts/curate_notion_import.py --notion-dir "NotionFolder" --target-kb "TargetCategory" --course-name "CourseName" --execute`
 
+6. **`scripts/fetch_book_data.py`**:
+   - **Purpose**: Non-fiction book ingestion engine implementing the **HDAS (*High-Density Actionable Synthesis*)** standard. Segments chapters, sanitizes text, extracts structures, writes chapter notes and master hubs directly to `VAULT_ROOT`, and cleans temporary staging files.
+   - **Execution**: `uv run python scripts/fetch_book_data.py --input <file_or_path> --slug <slug>`
+
+7. **`scripts/fetch_doc_data.py`**:
+   - **Purpose**: Multi-format document parser using the AnyDoc engine (`.docx`, `.pptx`, `.xlsx`, `.epub`, `.pdf`, `.odt`, `.csv`). Extracts clean Markdown and downloads embedded images directly into `<VAULT_ROOT>/assets/images/`.
+   - **Execution**: `uv run python scripts/fetch_doc_data.py --input <file_or_path>`
+
 ---
 
 **Read the `obsidian-cli` skill first**, then execute:

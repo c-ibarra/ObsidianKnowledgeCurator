@@ -215,14 +215,19 @@ The vault is strictly divided into four zones to separate immutable sources from
 - Pre-calculates `"graphify_context"` via `GraphifyMapper`.
 
 ### 3. Non-Fiction Book Ingestion & Synthesis (`fetch_book_data.py` & `okc-bookSummary`)
+- **High-Density Actionable Synthesis (HDAS Standard)**: Produces rich, 7-section modular chapter notes combining dense narrative prose with active learning tools (Tesis Central & Insight en 1 Frase, Preguntas de Indagación, Desarrollo Enriquecido con Modelos Mentales, Callouts Visuales de Metáfora/Cita/Trampa Común, Smart Cross-Domain Commentary, Guía de Aplicación Práctica con retos de 15 minutos, y Takeaway Ejecutivo en 1 Frase).
 - **Automated Structure Parsing**: Ingests PDF, EPUB, DOCX, and TXT files, segmenting chapters and sanitizing text.
-- **Default Obsidian Vault Output**: Writes main book summaries and individual chapter notes (`Chapter XX — <Title>.md`) directly to `VAULT_ROOT/dataScienceKnowledgeBase/<Category>/raw/Books/`.
-- **Enforced Chapter Depth (1,600–2,650 words total)**: Requires 900–1,500 words for Section 3 (Enriched Summary Development), bringing the total chapter note length to 1,600–2,650 words for thorough technical depth.
+- **Default Obsidian Vault Output**: Writes main book summaries and individual chapter notes (`Chapter XX — <Title>.md`) directly to `VAULT_ROOT/dataScienceKnowledgeBase/<Category>/raw/books/`.
+- **Enforced Chapter Depth (1,600–2,650 words total)**: Requires dense explanatory narrative for Section 3 (Enriched Summary Development) to ensure thorough technical and conceptual depth.
 - **Visual Content & Mermaid.js Diagrams**: Reconstructs mindmaps, architecture flows, sequence diagrams, and embeds extracted figures (`assets/images/`).
-- **Decoupled Executable Skill Artifact**: Generates structured agent skills in `.agents/skills/<slug>/` (`SKILL.md`, `chapters/`, `flashcards.md`, `glossary.md`, `resources.md`, `patterns.md`, `cheatsheet.md`).
+- **Executive Master Note Hub**: Compiles comprehensive master notes with full-book architecture mindmaps, mental models index, `#flashcard` spaced repetition cards, and specialized glossaries.
 - **Automatic Temporary File Cleanup**: Cleans up all working files in `temp/` via `--clean` upon completion.
 
-### 4. Structural Graph Sync (`graphify_helper.py` & `sync_vault.py`)
+### 4. Office Document & Format Ingestion (`fetch_doc_data.py` & `/okc-doc`)
+- **Multi-Format Extraction**: Ingests `.docx`, `.pptx`, `.xlsx`, `.epub`, `.pdf`, `.odt`, and `.csv` using the unified AnyDoc engine (`src/agent_tools/anydoc_engine.py`).
+- **Embedded Asset Extraction**: Extracts embedded figures and charts directly to `<VAULT_ROOT>/assets/images/` and links them with native Obsidian wikilinks.
+
+### 5. Structural Graph Sync (`graphify_helper.py` & `sync_vault.py`)
 - Incrementally updates `graphify-out/graph.json` after every note edit.
 - Automatically regenerates `.agents/skills/obsidian-knowledge-curator/KNOWLEDGE.md` with updated concept links.
 - Rebuilds Category Master Plans and audits wikilink health via `vault_linter.py`.
