@@ -1,119 +1,174 @@
 ---
 name: okc-bookSummary
-description: "Convierte libros de no ficción y documentos extensos (PDF, EPUB, DOCX, HTML, RTF, TXT) en Skills estructuradas ejecutables por agentes de IA y notas completas en Obsidian. Extrae e incrusta automáticamente todas las gráficas, imágenes y diagramas originales en el resumen, sintetiza conceptos, anécdotas, metáforas, preguntas clave, análisis crítico, diagramas Mermaid, tarjetas de estudio y recursos validados de YouTube. Elimina archivos temporales al finalizar."
+description: "Non-Fiction Book Synthesizer and Curator (/okc-book). Converts books and long documents (PDF, EPUB, DOCX, HTML, RTF, TXT) into rich, actionable, deeply analytical summaries by individual chapters and integrated master notes in Obsidian. Implements the High-Density Actionable Synthesis (HDAS) standard: continuous narrative prose, front-loaded takeaways, explicit mental models, common pitfalls, 15-min action prompts, smart cross-domain commentary, reflection exercises, native Mermaid diagrams, #flashcards, and wiki concept graphs."
 ---
 
-# Non-Fiction Book Curator & Synthesizer (okc-bookSummary)
+# Non-Fiction Book Curator & Synthesizer (okc-bookSummary) — High-Density Actionable Synthesis (HDAS)
 
-Transforma conocimiento de libros de no ficción en habilidades estructuradas para agentes de IA y las sube **por defecto al Vault de Obsidian** (`VAULT_ROOT`), preservando la totalidad del contenido visual, imágenes y diagramas.
-
----
-
-## 🎯 Reglas Principales de Ejecución
-
-1. **Subida por Defecto a Obsidian (`VAULT_ROOT`)**: Todo contenido procesado (nota principal del libro, notas de cada capítulo, imágenes en `assets/images/`, tarjetas `#flashcard`, glosario, conceptos en `wiki/` y actualización del `Master Plan`) **DEBE ser escrito únicamente y por defecto en el Vault de Obsidian** (`VAULT_ROOT`).
-2. **Sin Skills Persistentes por Libro**: Las carpetas de skills específicas por libro (p. ej. `.agents/skills/<slug-del-libro>/`) son exclusivamente borradores temporales de trabajo. NO deben persistirse en `.agents/skills/`; todo el conocimiento vive únicamente en el Vault.
-3. **Diagramas e Imágenes Obligatorios**: Se deben incrustar las imágenes/figuras extraídas en `assets/images/` del Vault y reconstruir mapas conceptuales, flujos de trabajo y arquitecturas usando **diagramas nativos Mermaid.js** en cada capítulo.
-4. **Integración con la Infraestructura**: Cada libro debe vincularse al Master Plan correspondiente, enriquecer o crear notas conceptuales en `wiki/`, y mantener la coherencia del grafo del vault (`knowledge-link`).
-5. **Limpieza Automática de Archivos Temporales**: Al finalizar el proceso, **TODOS los archivos de trabajo temporales en `temp/`** (`fetched_book_data.json`, `fetched_book_data.txt`, scripts temporales y carpetas de borrador de la skill) DEBEN ser eliminados automáticamente.
+Transforms knowledge from non-fiction books and long documents into **rich, actionable, and deeply analytical chapter-by-chapter summaries** directly inside the Obsidian Vault (`VAULT_ROOT`), combining continuous narrative depth with active learning, strategic mental models, and immediate real-world application.
 
 ---
 
-## 🎯 Estructura Generada Directamente en Obsidian (`VAULT_ROOT`)
+## 🎯 Primary Execution Rules
 
-Cada libro procesado generará la siguiente arquitectura de notas y recursos únicamente dentro del Vault de Obsidian:
+1. **Default Upload to Obsidian (`VAULT_ROOT`)**: All processed content (master book note, individual chapter notes, images in `assets/images/`, `#flashcard` cards, glossary, `wiki/` concepts, and Master Plan updates) **MUST be written exclusively and by default to the Obsidian Vault** (`VAULT_ROOT`).
+2. **Sequential Chapter-by-Chapter Processing**:
+   - **Step 1**: Ingest and segment the book using `uv run python scripts/fetch_book_data.py --input <file> --slug <slug>`.
+   - **Step 2**: Process and write **each chapter individually and sequentially** (`Chapter 00 — <Title>.md`, `Chapter 01 — <Title>.md`, ...) inside the book subfolder.
+   - **Step 3**: Generate the **Executive Master Book Note** (`<Author> — <Book Title>.md`) in the root of `Books/` linking all individual chapters.
+3. **High-Density Actionable Synthesis (HDAS Standard)**:
+   - **Dense Narrative Prose**: Articulated explanatory paragraphs explaining cause, effect, and dynamics.
+   - **Front-Loaded Insights**: Core mental models named and bolded (e.g. `Insight 1: [Mental Model Name]`).
+   - **Actionable Tooling (The "How")**: Concrete step-by-step implementation, a 15-minute challenge, and a self-reflection prompt per chapter.
+   - **Smart Commentary**: Cross-domain synthesis connecting the chapter's thesis to other authoritative works and mental models.
+   - **Common Pitfalls (`[!warning]`)**: Explicit warnings about common misapplications or biases.
+4. **Mandatory Diagrams and Visual Assets**:
+   - Embed extracted images/figures from the source document using `![[assets/images/<slug>-img-X.png]]`.
+   - Reconstruct conceptual maps, architectures, and decision workflows using **native Mermaid.js diagrams**.
+5. **Automatic Cleanup of Staging Files**:
+   - Upon completion, purge temporary staging files by running `uv run python scripts/fetch_book_data.py --clean`.
+6. **Vault Synchronization**:
+   - Run `uv run python scripts/sync_vault.py` to rebuild Master Plans, update Graphify, and run the vault linter.
+
+---
+
+## 🎯 File Architecture in Obsidian (`VAULT_ROOT`)
+
+Each processed book generates the following directory structure inside the Vault:
 
 ```
-VAULT_ROOT/dataScienceKnowledgeBase/AI Engineer/raw/Books/
-├── <Autor> — <Título del Libro>.md       # Resumen principal, flashcards, glosario y recursos
-└── <Autor> — <Título del Libro>/
-    ├── Chapter 01 — <Título>.md          # Capítulo detallado (900-1500 palabras resum. enriquecido, Mermaid)
-    ├── Chapter 02 — <Título>.md
+VAULT_ROOT/dataScienceKnowledgeBase/<Category>/raw/books/
+├── <Author> — <Book Title>.md       # Executive Master Note (Synopsis, Architecture Map, Index, Flashcards, Glossary)
+└── <Author> — <Book Title>/
+    ├── Chapter 00 — <Title>.md      # Individual Chapter Note (HDAS Standard)
+    ├── Chapter 01 — <Title>.md
     └── ...
 ```
 
 ---
 
-## 📋 Estructura y Extensión de Cada Capítulo (`chapters/chXX_<titulo>.md`)
+## 📋 Standard Chapter Architecture (`Chapter XX — <Title>.md`)
 
-> [!IMPORTANT]
-> **REGLA DE EXTENSIÓN (SECCIÓN 3: 900–1,500 PALABRAS | TOTAL CAPÍTULO: 1,600–2,650 PALABRAS)**:
-> - **Sección 3 (Desarrollo del Resumen Enriquecido)**: DEBE tener una extensión de **900 a 1,500 palabras** para desarrollar a profundidad cada concepto, metáfora, anécdota y diagrama.
-> - **Extensión Total Acumulada**: La nota completa del capítulo DEBE sumar **entre 1,600 y 2,650 palabras** al integrar las 5 secciones obligatorias.
-> - **Consolidación de Secciones Breves**: Secciones cortas en el libro original (Prefacio, Apéndices, Introducción breve de < 5 páginas) deben ser agrupadas en un capítulo consolidado (p. ej. `Chapter 00 — Front Matter y Apéndice`) para alcanzar el umbral mínimo de 1,600 palabras totales.
-
-Cada capítulo procesado debe contener rigurosamente las siguientes 5 secciones:
-
-### 1. Introducción (200–350 palabras)
-Contexto del capítulo, objetivo principal, autor y relevancia dentro del tema central del libro.
-
-### 2. Preguntas Clave (5–7 preguntas, ~100–150 palabras)
-Formular las preguntas fundamentales que el lector podrá responder tras estudiar el capítulo.
-
-### 3. Desarrollo del Resumen Enriquecido (900–1,500 palabras, con Imágenes y Diagramas por Defecto)
-Desglose conceptual en subsecciones lógicas. Para cada concepto clave:
-- Explicación concisa y objetiva.
-- **Inclusión Obligatoria de Contenido Visual Original**:
-  - **Gráficas, Tablas e Ilustraciones**: Cualquier imagen, figura o gráfica del libro original debe guardarse en `assets/images/<slug>-fig-<num>-<descripcion>.png` e incrustarse **por defecto** en la subsección correspondiente mediante la sintaxis:
-    `![[assets/images/<slug>-fig-<num>-<descripcion>.png]]`
-    *Pie de figura*: Explicación clara de lo que ilustra el diagrama o gráfica.
-- **Anécdotas y Metáforas Inline**: Se deben destacar visualmente en el flujo del texto mediante callouts nativos de Obsidian:
-  > [!example] Metáfora: <Título>
-  > Descripción de la metáfora y su aplicación práctica.
-
-  > [!quote] Historia Real / Anécdota: <Título>
-  > Hecho real o experiencia relatada por el autor y la lección aprendida.
-
-- **Mapa Mental y Diagramas Reconstruidos en Mermaid.js**: Además de las imágenes originales, incluir diagramas conceptuales interactivos nativos en Mermaid:
-  ```mermaid
-  mindmap
-    root((Tema Central))
-      Concepto A
-        Detalle A1
-        Detalle A2
-      Concepto B
-        Ejemplo B1
-  ```
-
-### 4. Análisis Crítico (200–300 palabras)
-Evaluación de la solidez de los argumentos, posibles sesgos, limitaciones y comparación breve con otras perspectivas del campo.
-
-### 5. Conclusión (200–350 palabras)
-Síntesis de los puntos principales, implicaciones prácticas y direcciones para la aplicación en proyectos reales.
-
----
-
-## 🎴 Flashcards de Estudio (`flashcards.md`)
-
-Crear 15+ tarjetas con la etiqueta `#flashcard` en formato dual Spaced Repetition (Obsidian / Anki):
+Each chapter note must contain the following 7 structured sections:
 
 ```markdown
-# Flashcards de Estudio — [[Nombre del Libro]]
+# Chapter XX — <Título del Capítulo>
 
-#flashcard
+> **<Autor> — <Título del Libro>**
+> Source: Book / Audio Ingestion · Date: YYYY
+> Part of: [[<Autor> — <Título del Libro>]]
+> Type: book-chapter
+> Processed: DD-MM-YYYY
+> Tags: #no-read-yet #book-summary #actionable-insights #mental-models
 
-Q: ¿Qué es el principio X expuesto por el autor?
-A: Definición precisa y contexto de aplicación.
+### 1. Tesis Central & Insight en Una Frase
+*La gran epifanía del capítulo sintetizada con impacto inmediato.*
+Contexto narrativo de cómo este bloque se integra en la tesis global del autor.
 
-Q: ¿Cuál es la relación causa-efecto entre Y y Z?
-A: Explicación de la dinámica.
+### 2. Preguntas de Indagación
+1. ¿Pregunta crítica 1...?
+2. ¿Pregunta crítica 2...?
+3. ¿Pregunta crítica 3...?
+4. ¿Pregunta crítica 4...?
+5. ¿Pregunta crítica 5...?
+
+### 3. Desarrollo del Resumen Enriquecido (Profundidad Narrativa & Modelos Mentales)
+Párrafos articulados y densos (sin listas secas de viñetas) que explican causas, dinámicas y consecuencias:
+- **Insight 1: [Nombre del Modelo Mental / Mecanismo Clave]**
+  Desarrollo profundo de la lógica, datos empíricos y matices históricos.
+- **Insight 2: [Nombre del Modelo Mental / Mecanismo Clave]**
+  Explicación de la operativa y los factores determinantes.
+- **Insight 3: [Nombre del Modelo Mental / Mecanismo Clave]**
+  Implicaciones estratégicas y transformaciones en la industria.
+
+> [!example] Metáfora Visual / Analogía: <Título>
+> La analogía o historia emblemática del autor para fijar el concepto en la memoria.
+
+> [!quote] Cita Clave & Caso Real: <Título>
+> Caso de estudio real con su lección fundamental.
+
+> [!warning] Trampa Común & Sesgo a Evitar: <Título>
+> El error típico que se comete al interpretar o aplicar erróneamente este principio.
+
+```mermaid
+flowchart TD
+    A[Disparador / Modelo Mental] --> B[Dinámica de Decisión]
+    B --> C[Resultado / Impacto Estratégico]
+```
+
+### 4. Smart Commentary (Conexiones Cruzadas & Contexto Ampliado)
+Análisis de alto nivel que conecta la tesis del capítulo con otros autores, libros referentes (ej. *The Second Machine Age*, *Superintelligence*, *Homo Deus*, *Blitzscaling*, *Lean Startup*) o avances tecnológicos contemporáneos.
+
+### 5. Guía de Aplicación Práctica (El "Cómo")
+* **Paso a Paso Accionable:** 3 a 4 pasos específicos para implementar el concepto en el trabajo, proyectos o toma de decisiones.
+* **Reto Inmediato de 15 Minutos:** Ejercicio práctico para ejecutar hoy mismo.
+* **Pregunta de Autorreflexión:** Pregunta introspectiva para auditar tu propia situación.
+
+### 6. Análisis Crítico & Límites del Modelo
+Evaluación honesta de sesgos del autor, excepciones donde la regla no aplica y contraargumentos del campo.
+
+### 7. Takeaway Ejecutivo en Una Frase
+*La conclusión definitiva y accionable para recordar siempre.*
 ```
 
 ---
 
-## 📚 Glosario y Recursos (`glossary.md` & `resources.md`)
+## 📖 Executive Master Note Structure (`<Author> — <Book Title>.md`)
 
-- **`glossary.md`**: Definir entre 5 y 10 términos especializados introducidos o redefinidos en el libro.
-- **`resources.md`**: Lista de referencias bibliográficas y **3–5 videos de YouTube validados mediante búsqueda web (`search_web`)** con título, canal y enlace verificado.
+The Master Note serves as the central hub for the book at the root of `raw/books/`:
+
+```markdown
+# <Book Title>
+
+> **<Author> — <Book Title>**
+> Type: book | non-fiction
+> Processed: DD-MM-YYYY
+> Status: [[Chapter 00 — <Title>]], [[Chapter 01 — <Title>]] ...
+> Tags: #no-read-yet #book-summary #master-note
+
+## 📌 Executive Synopsis
+(Fluid summary of 300-500 words covering the core thesis of the book, the problems it addresses, and the value of reading it).
+
+## 🗺️ Book Architecture Map
+```mermaid
+mindmap
+  root((<Book Title>))
+    Parte 1: Fundamentos
+      [[Chapter 00 — <Title>]]
+      [[Chapter 01 — <Title>]]
+    Parte 2: Mecánica y Dinámicas
+      [[Chapter 02 — <Title>]]
+```
+
+## 📚 Chapter Index & Mental Models
+| Chapter | Title | Mental Models & Key Concepts | Link |
+| :--- | :--- | :--- | :--- |
+| Ch. 00 | <Title> | [[ConceptA]], [[ConceptB]] | [[Chapter 00 — <Title>]] |
+| Ch. 01 | <Title> | [[ConceptC]] | [[Chapter 01 — <Title>]] |
+
+## 🎴 Study Flashcards (#flashcard)
+#flashcard
+Q: What is the central thesis advocated by the author in the book?
+A: Concise and precise answer.
+
+Q: How does concept X connect to principle Y?
+A: Dynamics explanation.
+
+## 📖 Specialized Glossary
+**Term**: Detailed definition in the context of the book.
+
+## 🔗 Related Wiki Concepts
+- [[ConceptA]]
+- [[ConceptB]]
+```
 
 ---
 
-## 🚀 Flujo de Ejecución e Integración
+## 🚀 Execution & Integration Workflow
 
-1. **Ingesta**: Ejecutar `uv run python scripts/fetch_book_data.py --input <ruta-o-url> --slug <slug>`.
-2. **Extracción Visual**: Extraer imágenes y diagramas del documento hacia `assets/images/`.
-3. **Escritura en Obsidian (Por Defecto)**: Generar las notas del libro y capítulos en `VAULT_ROOT/dataScienceKnowledgeBase/<Categoria>/raw/Books/`.
-4. **Construcción de Skill**: Generar la Skill estructurada en `.agents/skills/<slug>/`.
-5. **Integración de Infraestructura**: Actualizar el Master Plan de la categoría y crear/actualizar notas en `wiki/`.
-6. **Limpieza Automática**: Borrar todos los archivos temporales creados en `temp/`.
-7. **Sincronización del Vault**: Ejecutar `uv run python scripts/sync_vault.py`.
+1. **Ingest and Segment**: Begin with `uv run python scripts/fetch_book_data.py --input <file> --slug <slug>`.
+2. **Sequential Chapter Generation**: Create each `Chapter XX — <Title>.md` note sequentially in `raw/books/<Author> — <Book Title>/` using the 7-section HDAS standard.
+3. **Master Note Creation**: Create `<Author> — <Book Title>.md` in the root of `raw/books/`.
+4. **Wiki Enrichment**: Create or update concept pages in `wiki/` with bidirectional wikilinks.
+5. **Staging Cleanup**: Run `uv run python scripts/fetch_book_data.py --clean`.
+6. **Vault Sync**: Run `uv run python scripts/sync_vault.py`.

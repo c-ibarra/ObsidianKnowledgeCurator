@@ -194,6 +194,73 @@ def fetch_tier2_readability(url: str) -> tuple[str, str]:
     return "", ""
 
 # ==============================================================================
+# IMAGE EXTRACTION & LOCAL DOWNLOAD HELPER
+# ==============================================================================
+
+def download_article_images(url: str, text: str, title: str) -> tuple[str, list[dict]]:
+    """
+    Finds all image links in text (markdown or html), downloads them to VAULT_ROOT/assets/images/,
+    and replaces remote links with local Obsidian asset links.
+    """
+    slug = re.sub(r"[^\w\s-]", "", title.lower())
+    slug = re.sub(r"[-\s]+", "-", slug).strip("-")[:40] or "article"
+
+    vault_root_str = os.getenv("VAULT_ROOT", os.getenv("OBSIDIAN_VAULT_PATH", ""))
+    if vault_root_str and Path(vault_root_str).exists():
+        assets_dir = Path(vault_root_str) / "assets" / "images"
+    else:
+        assets_dir = PROJECT_DIR / "assets" / "images"
+    assets_dir.mkdir(parents=True, exist_ok=True)
+
+    md_img_pattern = r"!\[([^\]]*)\]\((https?://[^\)]+)\)"
+    matches = re.findall(md_img_pattern, text)
+    
+    downloaded_records = []
+    updated_text = text
+
+    import ssl
+    ctx = ssl.create_default_context()
+    ctx.check_hostname = False
+    ctx.verify_mode = ssl.CERT_NONE
+
+    for idx, (alt, img_url) in enumerate(matches, 1):
+        try:
+            ext = "png"
+            if ".jpg" in img_url.lower() or ".jpeg" in img_url.lower():
+                ext = "jpg"
+            elif ".webp" in img_url.lower():
+                ext = "webp"
+            elif ".gif" in img_url.lower():
+                ext = "gif"
+            elif ".svg" in img_url.lower():
+                ext = "svg"
+                
+            file_name = f"{slug}-img-{idx:02d}.{ext}"
+            file_path = assets_dir / file_name
+
+            headers = {"User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)"}
+            req = urllib.request.Request(img_url, headers=headers)
+            with urllib.request.urlopen(req, timeout=10, context=ctx) as resp:
+                img_bytes = resp.read()
+                if len(img_bytes) > 500:
+                    with open(file_path, "wb") as f:
+                        f.write(img_bytes)
+                    
+                    old_link = f"![{alt}]({img_url})"
+                    new_link = f"![{alt}](assets/images/{file_name})\n![[{file_name}]]"
+                    updated_text = updated_text.replace(old_link, new_link)
+                    downloaded_records.append({
+                        "original_url": img_url,
+                        "local_file": file_name,
+                        "local_path": str(file_path)
+                    })
+                    print(f"[Image Downloader] Saved image {idx}: {file_name}", file=sys.stderr)
+        except Exception as err:
+            print(f"[Image Downloader Warning] Failed to download {img_url}: {err}", file=sys.stderr)
+
+    return updated_text, downloaded_records
+
+# ==============================================================================
 # MAIN ROUTINE
 # ==============================================================================
 
@@ -231,6 +298,9 @@ def main():
     if not markdown_body:
         markdown_body = f"Title: {title}\nSource: {url}\n\n[Content blocked or requires interactive session. Use read_url_content or manual summary.]"
 
+    # Download source images locally
+    markdown_body, downloaded_images = download_article_images(url, markdown_body, title)
+
     # Graphify Context Enriched Mapping
     graphify_ctx = map_context_with_graphify(title, markdown_body[:2000])
 
@@ -244,7 +314,9 @@ def main():
             "title": title,
             "channel": "Web Article",
             "date": date_str,
-            "url": url
+            "url": url,
+            "images_downloaded": len(downloaded_images),
+            "downloaded_images": downloaded_images
         },
         "graphify_context": graphify_ctx
     }

@@ -23,6 +23,7 @@ When this skill is invoked via `/urlArticle <url>`, execute the following steps:
      - Grade the text (0-100 score) on **Information Density**, **Provenance/References**, and **Technical Level** using your LLM.
      - If the score is below the threshold, output a detailed scorecard (Score, Criteria failed, Brief Content Summary) and ask the user: *"Do you want to proceed with curation anyway? (y/n)"*. If the user declines, abort execution.
    - Summarize and format the content into a structured markdown note in the `raw/` zone following the vault conventions (no YAML, with H1, author blockquote, and adding the `Processed: DD-MM-YYYY` metadata line using today's date).
+   - **Mandatory Image Preservation & Local Downloading**: You MUST preserve ALL images, diagrams, flowcharts, and graphics present in the source article. Download every image into `<VAULT_ROOT>/assets/images/<slug>-img-<idx>.<ext>` and embed it locally in the note using native Obsidian wikilink syntax: `![[assets/images/<slug>-img-<idx>.<ext>]]`. Never omit source images or rely on fragile external URLs.
    - Identify 3-7 core concepts, check if they exist, and update/create their wiki files in the `wiki/` zone.
    - For every file created or modified in `raw/` or `wiki/`, run:
      ```bash

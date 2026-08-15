@@ -28,6 +28,7 @@ temp_note.md
 .agents/skills/obsidian-knowledge-curator/KNOWLEDGE.md
 .gemini/
 .vscode/
+.claude/
 
 # Temporary Execution Workspace & Reports
 temp/*

@@ -1,10 +1,11 @@
 from __future__ import annotations
 
 import re
+from typing import Any
 
 WORDS_PER_TOKEN = 0.75
 
-# Regex para detectar encabezados explícitos de capítulo
+# Regex to detect explicit chapter titles
 _EXPLICIT_CHAPTER = re.compile(
     r"^\s*(?:chapter|chapitre|kapitel|cap[ií]tulo|capitolo|hoofdstuk|ch\.?)\s*(?:(\d{1,2})|(?P<roman>[IVXLCDM]{1,7}))\b(?P<rest>.*)$",
     re.IGNORECASE,
@@ -13,15 +14,18 @@ _EXPLICIT_CHAPTER = re.compile(
 _ROMAN_HEAD = re.compile(r"^\s*([IVXLCDM]+)\s*[:.]\s+[A-ZÀ-Þ\"“(]")
 _CN_CHAPTER = re.compile(r"^\s*第\s*([0-9一二三四五六七八九十百千]+)\s*[章回卷节篇讲]")
 
-# Regex para detectar figuras, esquemas, gráficas y diagramas en el texto
+# Regex to detect figures, charts, and diagrams in text
 _FIGURE_PATTERN = re.compile(
     r"\b(?:figure|figura|fig\.|diagrama|gráfica|grafico|chart|esquema|illustration|ilustració[nns])\s*\d*[\.:]?",
     re.IGNORECASE,
 )
 
+# Regex for Markdown H1 and H2 headers (# or ##)
+_MARKDOWN_HEADER = re.compile(r"^(?:#{1,2})\s+(.+)$")
+
 
 def estimate_tokens(text: str) -> int:
-    """Estima el número de tokens en el texto (heurística palabras / 0.75)."""
+    """Estimates token count in text (words / 0.75 heuristic)."""
     try:
         import tiktoken
         enc = tiktoken.get_encoding("cl100k_base")
@@ -32,7 +36,7 @@ def estimate_tokens(text: str) -> int:
 
 
 def chapter_number(line: str) -> int | None:
-    """Detecta si una línea representa un título de capítulo y retorna su número."""
+    """Detects whether a line represents an explicit chapter title and returns its number."""
     m = _EXPLICIT_CHAPTER.match(line)
     if m:
         num_str = m.group(1)
@@ -58,7 +62,7 @@ def chapter_number(line: str) -> int | None:
 
 
 class BookIngestionService:
-    """Servicio de ingesta y segmentación de libros de no ficción para ObsidianKnowledgeCurator."""
+    """Intelligent ingestion and segmentation service for non-fiction books and documents."""
 
     def __init__(self, words_per_token: float = WORDS_PER_TOKEN):
         self.words_per_token = words_per_token
@@ -67,7 +71,7 @@ class BookIngestionService:
         return estimate_tokens(text)
 
     def detect_figures(self, text: str) -> list[str]:
-        """Detecta menciones y leyendas de figuras/diagramas/gráficas en el texto."""
+        """Detects mentions and captions of figures/diagrams/charts in text."""
         matches = []
         for line in text.splitlines():
             if _FIGURE_PATTERN.search(line):
@@ -76,11 +80,10 @@ class BookIngestionService:
                     matches.append(cleaned)
         return matches
 
-    def detect_chapters(self, text: str) -> list[dict[str, str | int | list[str]]]:
-        """Divide el texto en capítulos e identifica figuras/gráficas a extraer."""
-        lines = text.splitlines()
-        chapters: list[dict[str, str | int | list[str]]] = []
-        current_title = "Introducción / Front Matter"
+    def _split_by_explicit_chapters(self, lines: list[str]) -> list[dict[str, Any]]:
+        """Segmentation based on explicit chapter keywords (Chapter X, Capítulo Y)."""
+        chapters: list[dict[str, Any]] = []
+        current_title = "Introduction / Front Matter"
         current_lines: list[str] = []
 
         for line in lines:
@@ -93,7 +96,8 @@ class BookIngestionService:
                         "title": current_title,
                         "content": chapter_body,
                         "tokens": estimate_tokens(chapter_body),
-                        "figures_detected": self.detect_figures(chapter_body)
+                        "figures_detected": self.detect_figures(chapter_body),
+                        "segmentation_type": "explicit_chapter"
                     })
                 current_title = line.strip()
                 current_lines = [line]
@@ -108,7 +112,110 @@ class BookIngestionService:
                     "title": current_title,
                     "content": chapter_body,
                     "tokens": estimate_tokens(chapter_body),
-                    "figures_detected": self.detect_figures(chapter_body)
+                    "figures_detected": self.detect_figures(chapter_body),
+                    "segmentation_type": "explicit_chapter"
                 })
 
         return chapters
+
+    def _split_by_markdown_headers(self, lines: list[str]) -> list[dict[str, Any]]:
+        """Segmentation based on Markdown headers (# or ##)."""
+        chapters: list[dict[str, Any]] = []
+        current_title = "Initial Section / Introduction"
+        current_lines: list[str] = []
+
+        for line in lines:
+            m = _MARKDOWN_HEADER.match(line)
+            if m and current_lines:
+                body = "\n".join(current_lines).strip()
+                if body:
+                    chapters.append({
+                        "number": len(chapters) + 1,
+                        "title": current_title,
+                        "content": body,
+                        "tokens": estimate_tokens(body),
+                        "figures_detected": self.detect_figures(body),
+                        "segmentation_type": "markdown_header"
+                    })
+                current_title = m.group(1).strip()
+                current_lines = [line]
+            else:
+                current_lines.append(line)
+
+        if current_lines:
+            body = "\n".join(current_lines).strip()
+            if body:
+                chapters.append({
+                    "number": len(chapters) + 1,
+                    "title": current_title,
+                    "content": body,
+                    "tokens": estimate_tokens(body),
+                    "figures_detected": self.detect_figures(body),
+                    "segmentation_type": "markdown_header"
+                })
+
+        return chapters
+
+    def _split_by_word_chunks(self, text: str, target_words: int = 2000) -> list[dict[str, Any]]:
+        """Fallback: Word-count chunking (~2,000 words per chapter/section)."""
+        paragraphs = text.split("\n\n")
+        chapters: list[dict[str, Any]] = []
+        current_paragraphs: list[str] = []
+        current_word_count = 0
+
+        for para in paragraphs:
+            words = len(para.split())
+            if current_word_count + words >= target_words and current_paragraphs:
+                body = "\n\n".join(current_paragraphs).strip()
+                c_num = len(chapters) + 1
+                chapters.append({
+                    "number": c_num,
+                    "title": f"Section {c_num:02d}",
+                    "content": body,
+                    "tokens": estimate_tokens(body),
+                    "figures_detected": self.detect_figures(body),
+                    "segmentation_type": "word_chunk"
+                })
+                current_paragraphs = [para]
+                current_word_count = words
+            else:
+                current_paragraphs.append(para)
+                current_word_count += words
+
+        if current_paragraphs:
+            body = "\n\n".join(current_paragraphs).strip()
+            if body:
+                c_num = len(chapters) + 1
+                chapters.append({
+                    "number": c_num,
+                    "title": f"Section {c_num:02d}",
+                    "content": body,
+                    "tokens": estimate_tokens(body),
+                    "figures_detected": self.detect_figures(body),
+                    "segmentation_type": "word_chunk"
+                })
+
+        return chapters
+
+    def detect_chapters(self, text: str) -> list[dict[str, Any]]:
+        """
+        Segments text into chapters or thematic sections.
+        Multilevel strategy:
+        1. Explicit chapter headers ("Chapter X", "Capítulo Y").
+        2. Markdown headers (# or ##) if explicit chapters are absent.
+        3. Word-count chunks (~2,000 words) if text is continuous.
+        """
+        lines = text.splitlines()
+
+        # 1. Try explicit headers
+        explicit_chapters = self._split_by_explicit_chapters(lines)
+        if len(explicit_chapters) >= 2:
+            return explicit_chapters
+
+        # 2. Try Markdown headers
+        md_chapters = self._split_by_markdown_headers(lines)
+        if len(md_chapters) >= 2:
+            return md_chapters
+
+        # 3. Fallback to word-count chunks
+        return self._split_by_word_chunks(text, target_words=2000)

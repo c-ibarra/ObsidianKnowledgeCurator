@@ -15,5 +15,6 @@ dependencies = [
     "yt-dlp>=2026.3.17",
     "marker-pdf",
     "watchdog>=4.0.0",
+    "firecrawl-anydoc",
 ]
 

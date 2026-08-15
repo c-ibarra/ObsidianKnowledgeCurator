@@ -74,10 +74,15 @@ To enable graph-aware context retrieval across 13,000+ notes without incurring A
 - **Tier 2 (Browser User-Agent & SSL Bypass)**: Automatically escalates to DOM parsing with custom User-Agents and SSL verification bypass when encountering paywalls, captchas, LinkedIn, or Medium restrictions.
 - **Tier 3 (Web Search Fallback)**: Uses `search_web` to compile verified summaries if a page is 100% inaccessible.
 
-### 5. Decoupled Skill Factory (`SKILL.md` vs `KNOWLEDGE.md`)
+### 5. Mandatory Local Image Preservation Engine (`fetch_article_data.py` & `fetch_book_data.py`)
+- **Automated Asset Extraction**: Automatically parses image URLs from web articles (HTML `<img>` tags, markdown `![]()`, Medium `miro.medium.com`, etc.) and books during processing.
+- **Local Download & Offline Self-Containment**: Downloads remote images directly into `<VAULT_ROOT>/assets/images/<slug>-img-<idx>.<ext>` via HTTP/SSL-bypass, eliminating fragile external link dependencies.
+- **Native Obsidian Wikilink Embeddings**: Replaces remote image links with native wikilink syntax `![[assets/images/<file>.png]]`, ensuring 100% offline readability and graph visual consistency.
+
+### 6. Decoupled Skill Factory (`SKILL.md` vs `KNOWLEDGE.md`)
 To prevent system prompt inflation and context degradation:
 - **Behavior Prompt (`SKILL.md`)**: Contains pure agent execution rules, wikilink mandates, and non-hallucination constraints.
-- **Compiled Static Database (`KNOWLEDGE.md`)**: An automatically regenerated index containing ~560+ concept cards with absolute file links across the vault.
+- **Compiled Static Database (`KNOWLEDGE.md`)**: An automatically regenerated index containing ~575+ concept cards with absolute file links across the vault.
 
 ---
 

@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.9.0] - 2026-08-07
+
+### Added
+- **Mandatory Local Image Preservation Policy & Engine (`scripts/fetch_article_data.py`)**: Added `download_article_images()` helper to automatically parse image URLs (HTML `<img>` tags, markdown `![]()`, Medium `miro.medium.com`, etc.), fetch remote image files via HTTP/SSL-bypass, save them directly to `<VAULT_ROOT>/assets/images/<slug>-img-<idx>.<ext>`, and embed native Obsidian wikilink syntax `![[assets/images/...]]` in notes.
+- **Skill & Rule Alignment (`GEMINI.md`, `okc-urlArticle`, `okc-bookSummary`)**: Updated `GEMINI.md` global rules and `.agents/skills/okc-urlArticle/SKILL.md` to strictly enforce local image downloading into `<VAULT_ROOT>/assets/images/` for 100% offline self-containment and protection against broken external URLs.
+- **Synthesized Knowledge Concepts**: Curated and cross-linked new technical concept notes in `wiki/`:
+  - `OpenTelemetryGenAISemanticConventions.md` (GenAI OTel standard, `gen_ai.invoke_agent`, `gen_ai.inference.client`, `gen_ai.execute_tool`).
+  - `AIObservabilitySignals.md` (Spans, p50/p95/p99 Metrics Histograms, Opt-In Event details).
+  - `ForwardDeployedEngineer.md` (FDE role, Palantir Deltas, OpenAI/Anthropic deployment labs, LATAM nearshore opportunity).
+  - `DecompositionRoundInterview.md` (Signature interview round evaluating ambiguous problem decomposition and simple MVP V1 delivery).
+  - `AIEnterpriseDeploymentGap.md` (Friction points bridging Jupyter notebooks to enterprise Fortune 500 production).
+
 ## [2.8.0] - 2026-08-06
 
 ### Added

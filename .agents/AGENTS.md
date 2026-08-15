@@ -48,6 +48,10 @@ When the user starts a message with a slash command, you must immediately execut
 *   **`/okc-book <input>`** / **`/okc-bookSummary <input>`**
     *   *Purpose:* Ingest a non-fiction book or long document (PDF, EPUB, DOCX, TXT, MD) using the `okc-bookSummary` skill. It extracts structure, sanitizes text, segments chapters, synthesizes rich chapter notes (with anecdotes, metaphors, Mermaid mindmaps, key questions, and critical analysis), writes directly to the Obsidian Vault (`VAULT_ROOT`), compiles concepts in `wiki/`, purges temporary staging folders/files, and syncs the vault.
     *   *Execution:* Run `uv run python scripts/fetch_book_data.py --input "<input>"`. Read `temp/fetched_book_data.json` and `temp/fetched_book_data.txt`, generate book notes and chapter files directly in `VAULT_ROOT/dataScienceKnowledgeBase/<Category>/raw/Books/`, compile concepts in `wiki/`, run `uv run python scripts/fetch_book_data.py --clean`, and run `uv run python scripts/sync_vault.py`.
+*   **`/okc-doc <input>`**
+    *   *Purpose:* Ingest an office document, presentation, spreadsheet, EPUB or PDF (`.docx`, `.pptx`, `.xlsx`, `.epub`, `.pdf`, `.odt`, `.csv`) using AnyDoc (`firecrawl-anydoc`). Converts to clean Markdown, extracts embedded images to `<VAULT_ROOT>/assets/images/`, curates note in `raw/`, compiles concepts in `wiki/`, and syncs the vault.
+    *   *Execution:* Run `uv run python scripts/fetch_doc_data.py --input "<input>"`. Read `temp/fetched_data.json` and `temp/fetched_data.txt`, generate curated note in `raw/`, compile concepts in `wiki/`, and run `uv run python scripts/sync_vault.py`.
+
 
 
 

@@ -22,6 +22,7 @@ without breaking its current structure.
 | **Obsidian CLI** `/obsidian-cli` | ALWAYS — read skill instructions before operating |
 | **youTubeTranscript MCP** | Transcript of a single YouTube video |
 | **youTubePlayListTranscript MCP** | Transcripts of an entire YouTube playlist |
+| **AnyDoc Parser** (`firecrawl-anydoc`) | Extraction for Office docs (.docx, .pptx, .xlsx, .epub, .pdf, .csv, .odt, .rtf) |
 | **Context7 MCP** | Up-to-date documentation for libraries and frameworks |
 | **Google Drive MCP** | Read PDFs and documents saved in Drive |
 | **PDF Tools** | Extract text from local PDFs or direct URLs |
@@ -260,7 +261,7 @@ When ingesting a new source:
 2. Identify 3-7 core concepts from the source. Update or create their corresponding pages in the `wiki/` zone.
 3. **Contradictions**: If new information contradicts an existing concept page, use the `> [!contradiction]` callout to explicitly flag it.
 4. **Strict Wikilinks**: ALWAYS use `[[wikilinks]]` for concepts and entities. NEVER use standard markdown links `[text](file.md)` inside the vault.
-5. **New Root Categories (Thematic Disciplines)**: When creating a brand new root folder under `dataScienceKnowledgeBase/` (e.g., `Salud y medicina`), you must initialize it with:
+5. **New Root Categories (Thematic Disciplines)**: When creating a brand new root folder under `dataScienceKnowledgeBase/` (e.g., `Health & Medicine`), you must initialize it with:
    - Nested subdirectories: `/raw/<Category>/` and `/wiki/`.
    - **Category Master Plan** (`Master Plan — <Name>.md`): Redact in the category's main language, listing all ingested source files in a markdown table and summarizing core concepts.
    - **Curated Series Master Plan** (`Master Plan — <Name> Curated Series.md`): Map a logical learning order, study goals, and connections to other vault folders.
@@ -347,7 +348,7 @@ Before proposing any move, rename, or reclassification, analyze the context. Not
 - **Never modify** any protected zones: `dataScienceKnowledgeBase/dswok`, `system-design-primer`, `data-science-interviews`, `ai-engineering-field-guide`, `ai-system-design-interview-studio`
 - **Never use YAML frontmatter** — the vault does not use it
 - **Project Visual Assets**: NEVER store images in the root directory. All project visual resources (images, icons, screenshots, exported diagrams, logos) MUST be located inside the `assets/images/` directory. New images added in the future must follow this exact structure to maintain scalability.
-- **Vault Images**: save with descriptive kebab-case names (`vault-anatomy-zones.png`), reference using `![[descriptive-name.png]]`
+- **Vault Images & Mandatory Local Download**: When ingesting articles (`/okc-urlArticle`) or books (`/okc-bookSummary`), you MUST extract and download ALL images, graphics, diagrams, and figures from the source into `<VAULT_ROOT>/assets/images/` with descriptive kebab-case names (`vault-anatomy-zones.png`), and embed them natively into Obsidian notes using `![[assets/images/descriptive-name.png]]`. Never skip images or leave fragile external remote URLs.
 - **Multiple sources**: process in order, one at a time, reporting progress
 - **Vault conventions**: always follow the detected ones — do not impose new ones
 - **Unavailable transcripts**: indicate it before continuing, do not block the process
