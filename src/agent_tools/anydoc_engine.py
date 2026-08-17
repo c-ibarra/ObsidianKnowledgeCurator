@@ -33,14 +33,17 @@ def resolve_vault_root(provided_vault_root: Path | str | None = None) -> Path | 
         if p.exists():
             return p
 
-    env_root = os.getenv("VAULT_ROOT")
+    try:
+        from src.config import get_vault_root
+        vr = get_vault_root()
+        if vr.exists():
+            return vr
+    except Exception:
+        pass
+
+    env_root = os.getenv("VAULT_ROOT") or os.getenv("OBSIDIAN_VAULT_PATH")
     if env_root and Path(env_root).exists():
         return Path(env_root)
-
-    # Fallback to known default vault path
-    default_vault = Path("/Users/carlosibarra/Library/Mobile Documents/iCloud~md~obsidian/Documents/KnowledgeVault")
-    if default_vault.exists():
-        return default_vault
 
     return None
 
@@ -75,6 +78,14 @@ def extract_images_from_anydoc(document: Any, vault_root: Path | None, slug: str
         image_name = f"{slug}-img-{idx}.{ext}"
         target_path = images_dir / image_name
         target_path.write_bytes(data)
+
+        # Sanitize image (strip C2PA/AI metadata)
+        try:
+            from src.agent_tools.sanitizer import sanitize_image
+            sanitize_image(target_path)
+        except Exception:
+            pass
+
         saved_images.append(image_name)
 
     return saved_images
@@ -147,6 +158,13 @@ def convert_document_to_markdown(
                     [f"![[{img}]]" for img in saved_images]
                 )
                 markdown += img_embeds
+
+            # Sanitize text
+            try:
+                from src.agent_tools.sanitizer import sanitize_text
+                markdown = sanitize_text(markdown)
+            except Exception:
+                pass
 
             return {
                 "success": True,

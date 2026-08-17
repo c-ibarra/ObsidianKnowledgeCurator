@@ -5,11 +5,11 @@ import sys
 from pathlib import Path
 
 PROJECT_DIR = Path(__file__).parent.parent
+sys.path.insert(0, str(PROJECT_DIR))
 sys.path.append(str(PROJECT_DIR / "scripts"))
 
 import argparse
-
-VAULT_ROOT = Path(os.environ.get("OBSIDIAN_VAULT_PATH", str(Path.home() / "Obsidian")))
+from src.config import VAULT_ROOT, PROJECT_ROOT
 
 def get_master_plan_title(target_kb: str) -> str:
     kb_name = target_kb.split("/")[-1]

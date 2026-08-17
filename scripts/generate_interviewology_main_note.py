@@ -1,7 +1,11 @@
 import os
+import sys
 from pathlib import Path
 
-VAULT_ROOT = Path("/Users/carlosibarra/Library/CloudStorage/OneDrive-Personal/Obsidian")
+PROJECT_DIR = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(PROJECT_DIR))
+
+from src.config import VAULT_ROOT
 BOOKS_ROOT = VAULT_ROOT / "dataScienceKnowledgeBase/AI Engineer/raw/Books"
 MAIN_NOTE_PATH = BOOKS_ROOT / "Anna Papalia — Interviewology The New Science of Interviewing.md"
 WIKI_ROOT = VAULT_ROOT / "dataScienceKnowledgeBase/AI Engineer/wiki"

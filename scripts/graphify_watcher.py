@@ -9,11 +9,14 @@ from watchdog.events import FileSystemEventHandler
 
 # Add the parent directory of this script to the Python path
 PROJECT_DIR = Path(__file__).parent.parent
+sys.path.insert(0, str(PROJECT_DIR))
 sys.path.append(str(PROJECT_DIR / "scripts"))
-sys.path.append(str(PROJECT_DIR))
 
-from graphify_helper import update_note_in_graph, remove_note_from_graph, VAULT_BASE
+from src.config import VAULT_ROOT, PROJECT_ROOT
+from graphify_helper import update_note_in_graph, remove_note_from_graph
 from vault_db import get_vault_db_connection, upsert_file_in_db, delete_file_from_db
+
+VAULT_BASE = VAULT_ROOT
 
 # Ignored vault directory names
 IGNORED_DIR_NAMES = {".git", ".obsidian", ".agents"}

@@ -10,33 +10,15 @@ from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 PROJECT_DIR = Path(__file__).parent.parent
+sys.path.insert(0, str(PROJECT_DIR))
 sys.path.append(str(PROJECT_DIR / "scripts"))
+
+from src.config import VAULT_ROOT, PROJECT_ROOT
 from safe_merge import safe_merge_markdown
 from density_grader import grade_technical_density
 
-# ==============================================================================
-# CONFIGURATION & .ENV LOADING
-# ==============================================================================
-
-PROJECT_DIR = Path(__file__).parent.parent
-ENV_PATH = PROJECT_DIR / ".env"
-
-def load_env():
-    env_vars = {}
-    if ENV_PATH.exists():
-        for line in ENV_PATH.read_text(encoding="utf-8").splitlines():
-            line = line.strip()
-            if line and not line.startswith("#") and "=" in line:
-                key, val = line.split("=", 1)
-                val = val.strip().strip('"').strip("'")
-                env_vars[key.strip()] = val
-                os.environ[key.strip()] = val
-    return env_vars
-
-env = load_env()
-
 # Vault Directories
-VAULT_BASE = Path(os.environ.get("OBSIDIAN_VAULT_PATH", str(Path.home() / "Obsidian")))
+VAULT_BASE = VAULT_ROOT
 COURSE_NAME = "Feature Engineering for Machine Learning"
 TARGET_KB = "Machine Learning"
 

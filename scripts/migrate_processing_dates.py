@@ -4,7 +4,11 @@ import argparse
 from pathlib import Path
 from datetime import datetime
 
-VAULT_ROOT = Path(os.environ.get("OBSIDIAN_VAULT_PATH", str(Path.home() / "Obsidian")))
+import sys
+PROJECT_DIR = Path(__file__).parent.parent
+sys.path.insert(0, str(PROJECT_DIR))
+
+from src.config import VAULT_ROOT
 
 def migrate(execute=False):
     notes_to_change = []

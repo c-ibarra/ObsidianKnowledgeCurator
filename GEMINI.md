@@ -103,6 +103,10 @@ The project has automation tools in the `scripts/` folder to completely streamli
    - **Purpose**: Multi-format document parser using the AnyDoc engine (`.docx`, `.pptx`, `.xlsx`, `.epub`, `.pdf`, `.odt`, `.csv`). Extracts clean Markdown and downloads embedded images directly into `<VAULT_ROOT>/assets/images/`.
    - **Execution**: `uv run python scripts/fetch_doc_data.py --input <file_or_path>`
 
+8. **`scripts/setup_project.py`**:
+   - **Purpose**: Dual-mode interactive and headless environment setup wizard. Generates private `.env` safely from `.env.template`, auto-detects Vault paths (`~/Documents/Obsidian`), validates system dependencies (`obsidian`, `yt-dlp`, `buzz`, `ffmpeg`, `uv`), and initializes Graphify sync.
+   - **Execution**: `uv run python scripts/setup_project.py` or slash command `/okc-setup`
+
 ---
 
 **Read the `obsidian-cli` skill first**, then execute:

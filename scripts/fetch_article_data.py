@@ -13,11 +13,11 @@ from bs4 import BeautifulSoup
 import requests
 
 PROJECT_DIR = Path(__file__).parent.parent
-sys.path.append(str(PROJECT_DIR))
+sys.path.insert(0, str(PROJECT_DIR))
 
+from src.config import PROJECT_ROOT, VAULT_ROOT, ASSETS_IMAGES_DIR, TEMP_DIR
 from scripts.graphify_mapper import map_context_with_graphify
 
-TEMP_DIR = PROJECT_DIR / "temp"
 TEMP_DIR.mkdir(parents=True, exist_ok=True)
 
 # ==============================================================================
@@ -205,11 +205,7 @@ def download_article_images(url: str, text: str, title: str) -> tuple[str, list[
     slug = re.sub(r"[^\w\s-]", "", title.lower())
     slug = re.sub(r"[-\s]+", "-", slug).strip("-")[:40] or "article"
 
-    vault_root_str = os.getenv("VAULT_ROOT", os.getenv("OBSIDIAN_VAULT_PATH", ""))
-    if vault_root_str and Path(vault_root_str).exists():
-        assets_dir = Path(vault_root_str) / "assets" / "images"
-    else:
-        assets_dir = PROJECT_DIR / "assets" / "images"
+    assets_dir = ASSETS_IMAGES_DIR
     assets_dir.mkdir(parents=True, exist_ok=True)
 
     md_img_pattern = r"!\[([^\]]*)\]\((https?://[^\)]+)\)"
@@ -246,6 +242,13 @@ def download_article_images(url: str, text: str, title: str) -> tuple[str, list[
                     with open(file_path, "wb") as f:
                         f.write(img_bytes)
                     
+                    # Sanitize downloaded image (strip C2PA / EXIF / AI metadata)
+                    try:
+                        from src.agent_tools.sanitizer import sanitize_image
+                        sanitize_image(file_path)
+                    except Exception as san_err:
+                        print(f"[Sanitizer Warning] Could not sanitize image {file_name}: {san_err}", file=sys.stderr)
+
                     old_link = f"![{alt}]({img_url})"
                     new_link = f"![{alt}](assets/images/{file_name})\n![[{file_name}]]"
                     updated_text = updated_text.replace(old_link, new_link)
@@ -254,7 +257,7 @@ def download_article_images(url: str, text: str, title: str) -> tuple[str, list[
                         "local_file": file_name,
                         "local_path": str(file_path)
                     })
-                    print(f"[Image Downloader] Saved image {idx}: {file_name}", file=sys.stderr)
+                    print(f"[Image Downloader] Saved and sanitized image {idx}: {file_name}", file=sys.stderr)
         except Exception as err:
             print(f"[Image Downloader Warning] Failed to download {img_url}: {err}", file=sys.stderr)
 
@@ -300,6 +303,14 @@ def main():
 
     # Download source images locally
     markdown_body, downloaded_images = download_article_images(url, markdown_body, title)
+
+    # Universal Hygiene & Sanitization
+    try:
+        from src.agent_tools.sanitizer import sanitize_text
+        title = sanitize_text(title)
+        markdown_body = sanitize_text(markdown_body)
+    except Exception as san_err:
+        print(f"[Sanitizer Warning] Could not sanitize article text: {san_err}", file=sys.stderr)
 
     # Graphify Context Enriched Mapping
     graphify_ctx = map_context_with_graphify(title, markdown_body[:2000])

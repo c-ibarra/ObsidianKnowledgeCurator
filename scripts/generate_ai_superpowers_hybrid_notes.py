@@ -6,7 +6,7 @@ from pathlib import Path
 PROJECT_DIR = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_DIR))
 
-VAULT_ROOT = Path("/Users/carlosibarra/Library/CloudStorage/OneDrive-Personal/Obsidian")
+from src.config import VAULT_ROOT
 DEST_BOOKS_DIR = VAULT_ROOT / "dataScienceKnowledgeBase/Machine Learning/raw/books"
 BOOK_FOLDER = DEST_BOOKS_DIR / "Kai-Fu Lee — Superpotencias de la Inteligencia Artificial"
 MAIN_NOTE_PATH = DEST_BOOKS_DIR / "Kai-Fu Lee — Superpotencias de la Inteligencia Artificial.md"

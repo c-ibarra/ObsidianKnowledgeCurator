@@ -4,11 +4,13 @@ import re
 import argparse
 from pathlib import Path
 
-# ==============================================================================
-# CONFIGURATION
-# ==============================================================================
+import sys
+PROJECT_DIR = Path(__file__).parent.parent
+sys.path.insert(0, str(PROJECT_DIR))
 
-VAULT_BASE = Path(os.environ.get("OBSIDIAN_VAULT_PATH", str(Path.home() / "Obsidian")))
+from src.config import VAULT_ROOT
+
+VAULT_BASE = VAULT_ROOT
 DEFAULT_KB_DIR = VAULT_BASE / "dataScienceKnowledgeBase"
 
 def run_linter(target_dir_name: str):

@@ -11,14 +11,15 @@ from pathlib import Path
 # Insert project root to import src
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
+from src.config import PROJECT_ROOT, VAULT_ROOT, TEMP_DIR
 from src.agent_tools.anydoc_engine import convert_document_to_markdown, is_anydoc_available
 
 
 def cleanup_temp() -> None:
-    temp_dir = Path("temp")
+    temp_dir = TEMP_DIR
     if temp_dir.exists():
         for file in temp_dir.glob("*"):
-            if file.is_file():
+            if file.is_file() and file.name != ".gitkeep":
                 file.unlink()
         print("🧹 Temporary staging files successfully removed from temp/")
 
@@ -55,7 +56,7 @@ def main() -> None:
     engine_used = result.get("engine", "unknown")
     estimated_tokens = len(markdown_content) // 4
 
-    temp_dir = Path("temp")
+    temp_dir = TEMP_DIR
     temp_dir.mkdir(exist_ok=True)
 
     try:

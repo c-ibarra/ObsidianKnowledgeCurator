@@ -6,21 +6,13 @@ import argparse
 from pathlib import Path
 
 PROJECT_DIR = Path(__file__).parent.parent
+sys.path.insert(0, str(PROJECT_DIR))
 sys.path.append(str(PROJECT_DIR / "scripts"))
+
+from src.config import VAULT_ROOT, PROJECT_ROOT, discover_vault_categories
 from vault_db import get_vault_db_connection, sync_db
 
-def load_env():
-    env_path = PROJECT_DIR / ".env"
-    if env_path.exists():
-        with open(env_path, "r", encoding="utf-8") as f:
-            for line in f:
-                if line.strip() and not line.startswith("#") and "=" in line:
-                    key, val = line.split("=", 1)
-                    val = val.strip().strip('"').strip("'")
-                    os.environ[key.strip()] = val
-
-load_env()
-VAULT_BASE = Path(os.environ.get("OBSIDIAN_VAULT_PATH", str(Path.home() / "Obsidian")))
+VAULT_BASE = VAULT_ROOT
 
 def run_script(script_name: str, args: list = None) -> bool:
     script_path = PROJECT_DIR / "scripts" / script_name
@@ -39,15 +31,7 @@ def run_script(script_name: str, args: list = None) -> bool:
         return False
 
 def discover_categories() -> list:
-    categories = []
-    # Scan for directories under VAULT_BASE that contain a 'raw' subdirectory
-    for root, dirs, files in os.walk(VAULT_BASE):
-        if any(ignored in root for ignored in ["dswok", ".git", ".obsidian", ".agents"]):
-            continue
-        if "raw" in dirs:
-            rel_path = Path(root).relative_to(VAULT_BASE)
-            categories.append(str(rel_path))
-    return sorted(categories)
+    return discover_vault_categories(VAULT_BASE)
 
 def run_graphify_helper() -> bool:
     print("=== Updating Graphify Graph & KNOWLEDGE.md Index ===")

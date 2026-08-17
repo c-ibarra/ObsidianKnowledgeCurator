@@ -4,9 +4,13 @@ import re
 import sqlite3
 from pathlib import Path
 
-# Add project root and scripts directories to python path
+import sys
 PROJECT_DIR = Path(__file__).parent.parent
-DB_PATH = PROJECT_DIR / "graphify-out" / "vault_index.db"
+sys.path.insert(0, str(PROJECT_DIR))
+
+from src.config import PROJECT_ROOT, GRAPHIFY_OUT_DIR, VAULT_ROOT
+
+DB_PATH = GRAPHIFY_OUT_DIR / "vault_index.db"
 
 # Ignored vault directory names
 IGNORED_DIR_NAMES = {".git", ".obsidian", ".agents"}
@@ -294,9 +298,6 @@ def sync_db(vault_base: Path, conn: sqlite3.Connection):
 
 if __name__ == "__main__":
     # Test connection and sync
-    from graphify_helper import load_env
-    load_env()
-    vault_path = Path(os.environ.get("OBSIDIAN_VAULT_PATH", str(Path.home() / "Obsidian")))
     connection = get_vault_db_connection()
-    sync_db(vault_path, connection)
+    sync_db(VAULT_ROOT, connection)
     connection.close()

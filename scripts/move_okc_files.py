@@ -3,7 +3,11 @@ import os
 import shutil
 from pathlib import Path
 
-VAULT_ROOT = Path(os.environ.get("OBSIDIAN_VAULT_PATH", str(Path.home() / "Obsidian")))
+import sys
+PROJECT_DIR = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(PROJECT_DIR))
+
+from src.config import VAULT_ROOT
 SOURCE_DIR = VAULT_ROOT / "dataScienceKnowledgeBase/AI Engineer/raw/Portfolio ideas"
 DEST_DIR = SOURCE_DIR / "ObsidianKnowledgeCurator"
 

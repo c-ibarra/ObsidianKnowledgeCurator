@@ -10,7 +10,11 @@ import shutil
 from pathlib import Path
 
 PROJECT_DIR = Path(__file__).parent.parent
-TEMP_DIR = PROJECT_DIR / "temp"
+sys.path.insert(0, str(PROJECT_DIR))
+
+from src.config import PROJECT_ROOT, VAULT_ROOT, TEMP_DIR
+
+TEMP_DIR.mkdir(parents=True, exist_ok=True)
 
 def parse_twitter_ytdlp_json(json_str: str, url: str):
     data = json.loads(json_str)
@@ -190,7 +194,18 @@ def main():
     
     metadata = get_twitter_metadata(args.url)
     transcript = get_twitter_transcript(args.url)
-    
+
+    # Universal Hygiene & Sanitization
+    try:
+        from src.agent_tools.sanitizer import sanitize_text
+        transcript = sanitize_text(transcript)
+        if "title" in metadata:
+            metadata["title"] = sanitize_text(metadata["title"])
+        if "description" in metadata:
+            metadata["description"] = sanitize_text(metadata["description"])
+    except Exception as san_err:
+        print(f"[Sanitizer Warning] Could not sanitize twitter data: {san_err}", file=sys.stderr)
+
     try:
         from scripts.graphify_mapper import map_context_with_graphify
         graphify_ctx = map_context_with_graphify(metadata.get("title", "Twitter Post"), transcript[:2000])

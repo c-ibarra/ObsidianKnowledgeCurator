@@ -51,6 +51,9 @@ When the user starts a message with a slash command, you must immediately execut
 *   **`/okc-doc <input>`**
     *   *Purpose:* Ingest an office document, presentation, spreadsheet, EPUB or PDF (`.docx`, `.pptx`, `.xlsx`, `.epub`, `.pdf`, `.odt`, `.csv`) using AnyDoc (`firecrawl-anydoc`). Converts to clean Markdown, extracts embedded images to `<VAULT_ROOT>/assets/images/`, curates note in `raw/`, compiles concepts in `wiki/`, and syncs the vault.
     *   *Execution:* Run `uv run python scripts/fetch_doc_data.py --input "<input>"`. Read `temp/fetched_data.json` and `temp/fetched_data.txt`, generate curated note in `raw/`, compile concepts in `wiki/`, and run `uv run python scripts/sync_vault.py`.
+*   **`/okc-setup`**
+    *   *Purpose:* Configure project environment variables, Obsidian Vault path, LLM providers, and system dependencies from `.env.template`.
+    *   *Execution:* Run `uv run python scripts/setup_project.py --non-interactive --sync` (or pass `--vault-path <path>`).
 
 
 

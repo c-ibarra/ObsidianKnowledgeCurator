@@ -159,29 +159,27 @@ cd obsidianKnowledgeCurator
 uv sync
 ```
 
-#### Step 3: Configure Environment Variables
+#### Step 3: Run Interactive Setup Wizard
 
-Create your `.env` file from the template:
+Run the automated setup wizard to configure your local `.env` securely from `.env.template`, auto-detect your Obsidian Vault (`~/Documents/Obsidian`), and validate system dependencies:
 ```bash
-cp .env.example .env
+# Interactive setup in terminal
+uv run python scripts/setup_project.py
+
+# Or within Antigravity chat:
+/okc-setup
 ```
 
-Edit `.env` to configure your absolute vault path and quality thresholds:
-```env
-OBSIDIAN_VAULT_PATH="/path/to/your/Obsidian/Vault"
-MIN_TECHNICAL_SCORE=60
-MAX_TRANSCRIPT_CHARS=50000
-CONTEXT_DEGRADATION_THRESHOLD=0.40
+Alternatively, manually copy the template and edit your `.env`:
+```bash
+cp .env.template .env
 ```
 
 #### Step 4: Initialize the Knowledge Graph & Skills
 
 Build the initial structural graph across your vault and compile the `KNOWLEDGE.md` concept cards index:
 ```bash
-# Run structural graph initializer
-uv tool run --from graphifyy python scripts/graphify_helper.py
-
-# Verify vault health and rebuild Master Plans
+# Verify vault health, rebuild Master Plans, and compile Graphify index
 uv run python scripts/sync_vault.py --target-kb all
 ```
 

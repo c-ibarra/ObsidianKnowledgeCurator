@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import os
+import sys
 import re
 import difflib
 import urllib.parse
@@ -11,7 +12,11 @@ from pathlib import Path
 # ==============================================================================
 
 PROJECT_DIR = Path(__file__).parent.parent
-VAULT_BASE = Path(os.environ.get("OBSIDIAN_VAULT_PATH", str(Path.home() / "Obsidian")))
+sys.path.insert(0, str(PROJECT_DIR))
+
+from src.config import VAULT_ROOT, PROJECT_ROOT
+
+VAULT_BASE = VAULT_ROOT
 
 # ==============================================================================
 # HELPERS
@@ -263,53 +268,85 @@ def run_linter(target_kb: str = "dataScienceKnowledgeBase/AI Engineer", write_ch
     else:
         print("  None detected.")
 
+    # 5. Provenance & Artifact Hygiene Audit (Unicode invisibles & Zero-Width Chars)
+    print(f"\n[!] PROVENANCE & UNICODE HYGIENE AUDIT:")
+    unclean_notes = []
+    try:
+        from src.agent_tools.sanitizer import sanitize_text
+        for note_name, data in all_notes.items():
+            raw_c = data["content"]
+            clean_c = sanitize_text(raw_c)
+            if clean_c != raw_c:
+                unclean_notes.append(note_name)
+    except Exception as e:
+        print(f"  Warning during hygiene audit: {e}")
+
+    if unclean_notes:
+        print(f"  ⚠️ Detected invisible Unicode/ZWSP artifacts in {len(unclean_notes)} notes:")
+        for un in unclean_notes[:10]:
+            print(f"    - {format_note_link(un, all_notes[un]['abs_path'])}")
+        if len(unclean_notes) > 10:
+            print(f"    ... and {len(unclean_notes)-10} more.")
+    else:
+        print("  ✅ 100% Clean — No invisible Unicode, ZWSP, or hidden provenance artifacts detected.")
+
     # 6. Apply Write Modifications if requested
-    if write_changes and dead_link_suggestions:
+    if write_changes:
         print("\n" + "=" * 80)
-        print("APPLYING AUTO-CORRECTIONS TO FILES...")
+        print("APPLYING AUTO-CORRECTIONS & HYGIENE SANITIZATION TO FILES...")
         print("=" * 80)
         files_modified = 0
         links_fixed_total = 0
+        sanitized_total = 0
         
         for note_name, data in all_notes.items():
             content = data["content"]
             modified = False
             
-            def replacer(match):
-                nonlocal modified, links_fixed_total
-                full_link = match.group(0)
-                target = match.group(1).strip()
-                header = match.group(2) or ""
-                alias = match.group(3) or ""
+            # Step A: Link auto-fixes
+            if dead_link_suggestions:
+                def replacer(match):
+                    nonlocal modified, links_fixed_total
+                    full_link = match.group(0)
+                    target = match.group(1).strip()
+                    header = match.group(2) or ""
+                    alias = match.group(3) or ""
+                    
+                    target_clean = target.split('|')[0].split('#')[0].strip()
+                    
+                    if target_clean in dead_link_suggestions:
+                        best_match, _ = dead_link_suggestions[target_clean]
+                        new_link = f"[[{best_match}{header}{alias}]]"
+                        print(f"    - In '{note_name}': replacing [[{target}]] -> {new_link}")
+                        modified = True
+                        links_fixed_total += 1
+                        return new_link
+                    return full_link
                 
-                # Extract target name without header or alias
-                target_clean = target.split('|')[0].split('#')[0].strip()
-                
-                if target_clean in dead_link_suggestions:
-                    best_match, _ = dead_link_suggestions[target_clean]
-                    new_link = f"[[{best_match}{header}{alias}]]"
-                    print(f"    - In '{note_name}': replacing [[{target}]] -> {new_link}")
-                    modified = True
-                    links_fixed_total += 1
-                    return new_link
-                return full_link
-            
-            new_content = re.sub(r'\[\[([^\]|#]*)(#[^\]|]*)?(\|[^\]]*)?\]\]', replacer, content)
+                content = re.sub(r'\[\[([^\]|#]*)(#[^\]|]*)?(\|[^\]]*)?\]\]', replacer, content)
+
+            # Step B: Hygiene sanitization
+            clean_c = sanitize_text(content)
+            if clean_c != content:
+                content = clean_c
+                modified = True
+                sanitized_total += 1
             
             if modified:
                 try:
-                    data["abs_path"].write_text(new_content, encoding="utf-8")
+                    data["abs_path"].write_text(content, encoding="utf-8")
                     files_modified += 1
                 except Exception as e:
                     print(f"Error writing updates to '{note_name}': {e}")
                     
-        print(f"\n[x] Auto-fixed {links_fixed_total} wikilinks across {files_modified} files successfully!")
+        print(f"\n[x] Auto-fixed {links_fixed_total} wikilinks and sanitized {sanitized_total} notes across {files_modified} files successfully!")
         
     print("\n" + "=" * 80)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Vault Health Check and Linter")
     parser.add_argument("--target-kb", default="dataScienceKnowledgeBase/AI Engineer", help="Target knowledge base folder relative to vault root")
-    parser.add_argument("--write", action="store_true", help="Apply auto-corrections to markdown files")
+    parser.add_argument("--write", action="store_true", help="Apply auto-corrections and hygiene sanitization to markdown files")
     args = parser.parse_args()
     run_linter(args.target_kb, args.write)
+

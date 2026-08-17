@@ -3,7 +3,10 @@ import shutil
 import sys
 from pathlib import Path
 
-VAULT_ROOT = Path("/Users/carlosibarra/Library/CloudStorage/OneDrive-Personal/Obsidian")
+PROJECT_DIR = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(PROJECT_DIR))
+
+from src.config import VAULT_ROOT
 
 SRC_BOOK_MAIN = VAULT_ROOT / "dataScienceKnowledgeBase/AI Engineer/raw/Books/Kai-Fu Lee — Superpotencias de la Inteligencia Artificial.md"
 SRC_BOOK_DIR = VAULT_ROOT / "dataScienceKnowledgeBase/AI Engineer/raw/Books/Kai-Fu Lee — Superpotencias de la Inteligencia Artificial"

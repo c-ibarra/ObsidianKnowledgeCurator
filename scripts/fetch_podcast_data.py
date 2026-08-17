@@ -14,11 +14,11 @@ from pathlib import Path
 from typing import Dict, Any, Optional
 
 PROJECT_DIR = Path(__file__).parent.parent
-sys.path.append(str(PROJECT_DIR))
+sys.path.insert(0, str(PROJECT_DIR))
 
+from src.config import PROJECT_ROOT, VAULT_ROOT, TEMP_DIR
 from scripts.graphify_mapper import map_context_with_graphify
 
-TEMP_DIR = PROJECT_DIR / "temp"
 TEMP_DIR.mkdir(parents=True, exist_ok=True)
 
 def download_audio_with_ytdlp(url: str, output_mp3_path: Path) -> bool:
@@ -101,6 +101,13 @@ def extract_podcast_episode(url: str) -> Dict[str, Any]:
 
     # Step 2: Transcribe via Buzz CLI
     transcript_text = transcribe_audio_with_buzz(mp3_target)
+
+    # Universal Hygiene & Sanitization
+    try:
+        from src.agent_tools.sanitizer import sanitize_text
+        transcript_text = sanitize_text(transcript_text)
+    except Exception as san_err:
+        print(f"[Sanitizer Warning] Could not sanitize podcast transcript: {san_err}", file=sys.stderr)
 
     # Clean up mp3 after transcription
     if mp3_target.exists():

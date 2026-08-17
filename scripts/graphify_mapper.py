@@ -13,21 +13,12 @@ from pathlib import Path
 from typing import Dict, List, Any, Optional
 
 PROJECT_DIR = Path(__file__).parent.parent
+sys.path.insert(0, str(PROJECT_DIR))
 
-def load_env():
-    env_path = PROJECT_DIR / ".env"
-    if env_path.exists():
-        with open(env_path, "r", encoding="utf-8") as f:
-            for line in f:
-                if line.strip() and not line.startswith("#") and "=" in line:
-                    key, val = line.split("=", 1)
-                    val = val.strip().strip('"').strip("'")
-                    os.environ[key.strip()] = val
+from src.config import PROJECT_ROOT, VAULT_ROOT, GRAPHIFY_OUT_DIR
 
-load_env()
-
-VAULT_BASE = Path(os.environ.get("OBSIDIAN_VAULT_PATH", str(Path.home() / "Obsidian")))
-GRAPH_JSON_PATH = PROJECT_DIR / "graphify-out" / "graph.json"
+VAULT_BASE = VAULT_ROOT
+GRAPH_JSON_PATH = GRAPHIFY_OUT_DIR / "graph.json"
 
 def get_available_raw_categories() -> List[str]:
     """Scan vault raw/ subdirectories to build the active category list."""

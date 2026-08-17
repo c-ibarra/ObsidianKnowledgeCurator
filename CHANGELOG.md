@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.11.0] - 2026-08-17
+
+### Added
+- **Centralized Configuration Authority (`src/config.py` & `src/__init__.py`)**: Created unified module as the single source of truth for all project paths (`VAULT_ROOT`, `ASSETS_IMAGES_DIR`, `GRAPHIFY_OUT_DIR`, `TEMP_DIR`, `SKILLS_DIR`), environment loading, and category discovery (`discover_vault_categories()`).
+- **Interactive & Headless Setup Wizard (`scripts/setup_project.py` & `/okc-setup`)**: Added setup wizard script with dual-mode support (interactive CLI and Antigravity slash command), auto-detecting Vault locations (`~/Documents/Obsidian`), Obsidian CLI binaries, LLM providers (`gemini`/`ollama`), and validating system dependencies (`obsidian`, `yt-dlp`, `buzz`, `ffmpeg`, `uv`).
+- **Official Environment Template (`.env.template`)**: Created standard git-tracked template file to safely initialize private `.env` without exposing personal user paths.
+- **Repository Privacy Protection & Path Leak Prevention (ADR 0003)**: Sanitized all Git-tracked settings (`.agents/settings.json`) to generic placeholders, guaranteeing 0 personal system path leaks in public repositories.
+- **Full Vault Migration & Graphify Rebuild**: Migrated vault reference to `~/Documents/Obsidian`, synchronized SQLite index (2,946 active files), and rebuilt Graphify graph (20,724 nodes, 20,715 edges) and `KNOWLEDGE.md` index (589 concepts).
+
+### Changed
+- **Refactored 25+ Scripts**: Eliminated duplicated `load_env()` implementations and hardcoded strings across `scripts/` and `src/agent_tools/`, routing all path and environment resolution through `src.config`.
+
 ## [2.10.0] - 2026-08-15
 
 ### Added

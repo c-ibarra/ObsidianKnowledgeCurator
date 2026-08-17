@@ -10,8 +10,14 @@ from pathlib import Path
 # CONFIGURATION
 # ==============================================================================
 
+import sys
 PROJECT_DIR = Path(__file__).parent.parent
-VAULT_BASE = Path(os.environ.get("OBSIDIAN_VAULT_PATH", str(Path.home() / "Obsidian")))
+sys.path.insert(0, str(PROJECT_DIR))
+sys.path.append(str(PROJECT_DIR / "scripts"))
+
+from src.config import VAULT_ROOT, PROJECT_ROOT
+
+VAULT_BASE = VAULT_ROOT
 AI_ENGINEER_DIR = VAULT_BASE / "dataScienceKnowledgeBase" / "AI Engineer"
 
 # Assume curate_notion_import has call_gemini

@@ -9,9 +9,13 @@ from pathlib import Path
 # CONFIGURATION
 # ==============================================================================
 
+import sys
 PROJECT_DIR = Path(__file__).parent.parent
-VAULT_BASE = Path(os.environ.get("OBSIDIAN_VAULT_PATH", str(Path.home() / "Obsidian")))
-TEMP_DIR = PROJECT_DIR / "temp"
+sys.path.insert(0, str(PROJECT_DIR))
+
+from src.config import VAULT_ROOT, PROJECT_ROOT, TEMP_DIR
+
+VAULT_BASE = VAULT_ROOT
 
 def scan_contradictions(target_kb: str = "dataScienceKnowledgeBase/AI Engineer"):
     target_kb_dir = VAULT_BASE / target_kb

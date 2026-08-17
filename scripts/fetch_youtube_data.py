@@ -9,7 +9,11 @@ from pathlib import Path
 from youtube_transcript_api import YouTubeTranscriptApi
 
 PROJECT_DIR = Path(__file__).parent.parent
-TEMP_DIR = PROJECT_DIR / "temp"
+sys.path.insert(0, str(PROJECT_DIR))
+
+from src.config import PROJECT_ROOT, VAULT_ROOT, TEMP_DIR
+
+TEMP_DIR.mkdir(parents=True, exist_ok=True)
 
 def get_video_id(url_or_id: str) -> str:
     if len(url_or_id) == 11:
@@ -203,6 +207,15 @@ def main():
     details = get_video_details(video_id)
     transcript = get_transcript(video_id)
     
+    # Universal Hygiene & Sanitization
+    try:
+        from src.agent_tools.sanitizer import sanitize_text
+        transcript = sanitize_text(transcript)
+        if "title" in details:
+            details["title"] = sanitize_text(details["title"])
+    except Exception as san_err:
+        print(f"[Sanitizer Warning] Could not sanitize text: {san_err}", file=sys.stderr)
+
     try:
         from scripts.graphify_mapper import map_context_with_graphify
         graphify_ctx = map_context_with_graphify(details.get("title", ""), transcript[:2000])

@@ -12,33 +12,19 @@ from graphify.build import build_from_json
 from graphify.cluster import cluster
 from graphify.export import to_json
 
+import sys
 PROJECT_DIR = Path(__file__).parent.parent
+sys.path.insert(0, str(PROJECT_DIR))
+from src.config import PROJECT_ROOT, VAULT_ROOT, GRAPHIFY_OUT_DIR, relativize_path
 
-def load_env():
-    env_path = PROJECT_DIR / ".env"
-    if env_path.exists():
-        with open(env_path, "r", encoding="utf-8") as f:
-            for line in f:
-                if line.strip() and not line.startswith("#") and "=" in line:
-                    key, val = line.split("=", 1)
-                    val = val.strip().strip('"').strip("'")
-                    os.environ[key.strip()] = val
-
-load_env()
-VAULT_BASE = Path(os.environ.get("OBSIDIAN_VAULT_PATH", str(Path.home() / "Obsidian")))
-OUTPUT_DIR = PROJECT_DIR / "graphify-out"
+VAULT_BASE = VAULT_ROOT
+OUTPUT_DIR = GRAPHIFY_OUT_DIR
 GRAPH_JSON_PATH = OUTPUT_DIR / "graph.json"
 CACHE_PATH = OUTPUT_DIR / "graph_cache.json"
 
 def _relativize_path(abs_path: Path) -> str:
     """Make an absolute path relative to either vault root or project root."""
-    try:
-        return f"vault://{abs_path.relative_to(VAULT_BASE)}"
-    except ValueError:
-        try:
-            return f"project://{abs_path.relative_to(PROJECT_DIR)}"
-        except ValueError:
-            return str(abs_path)
+    return relativize_path(abs_path, vault_base=VAULT_BASE)
 
 def _should_ignore_project_path(path: Path) -> bool:
     """Check if a project path directory should be ignored."""
