@@ -77,6 +77,41 @@ SCRIPTS_DIR: Path = PROJECT_ROOT / "scripts"
 # Obsidian CLI Path
 OBSIDIAN_CLI_PATH: str = os.environ.get("OBSIDIAN_CLI_PATH", "/opt/homebrew/bin/obsidian")
 
+# graphify-daemon: the live MCP daemon serving this vault's knowledge graph
+# (~/projects/graphify-daemon). Preferred over the legacy graphify-out/
+# pipeline when reachable -- see .agents/rules/graphify.md.
+GRAPHIFY_DAEMON_URL: str = os.environ.get("GRAPHIFY_DAEMON_URL", "http://127.0.0.1:8787")
+GRAPHIFY_DAEMON_API_KEY: str = os.environ.get("GRAPHIFY_DAEMON_API_KEY", "")
+GRAPHIFY_DAEMON_GRAPH_JSON: Path = Path(
+    os.environ.get(
+        "GRAPHIFY_DAEMON_GRAPH_JSON",
+        str(Path.home() / "projects" / "graphify-daemon" / "out" / "graph.json"),
+    )
+)
+
+# Forces which graph backend knowledge_commands.py/okc_doctor.py use, on top
+# of their default automatic daemon-first/legacy-fallback detection:
+#   auto (default)  -- try the daemon, fall back to legacy silently
+#   local           -- never try the daemon, always use the legacy pipeline
+#   remote          -- only try the daemon; if unavailable, fail loudly
+#                      instead of silently falling back
+# Any other value is treated as "auto".
+GRAPHIFY_BACKEND: str = os.environ.get("GRAPHIFY_BACKEND", "auto")
+
+
+def normalize_graphify_backend(value: str) -> str:
+    """Collapse an arbitrary GRAPHIFY_BACKEND string to exactly "local",
+    "remote", or "auto" -- unset/unrecognized values become "auto".
+
+    Both knowledge_commands.py and okc_doctor.py branch on this instead of
+    comparing their own copy of GRAPHIFY_BACKEND against "local"/"remote"
+    directly, so the three-way classification (and what counts as an
+    unrecognized value) lives in one place. Takes the value as a parameter
+    rather than reading the module global itself so each caller's own
+    GRAPHIFY_BACKEND import stays independently monkeypatchable in tests.
+    """
+    return value if value in ("local", "remote") else "auto"
+
 
 def get_vault_root() -> Path:
     """Returns the current resolved VAULT_ROOT Path."""

@@ -20,4 +20,4 @@ To act as a vault-aware personal memory and research assistant, answering querie
    - If the requested topic is not present in [KNOWLEDGE.md](KNOWLEDGE.md) or the vault notes, state that it is not available in the vault instead of fabricating details.
 
 ## Graph Verification
-If the local Graphify index exists (`graphify-out/graph.json`), you can run `graphify query "<question>"` to trace shortest paths and locate relevant nodes quickly.
+If `graphify-daemon` is running (`GET /health` on its configured host/port returns `{"ready": true}`), use its `query_graph`/`shortest_path` MCP tools to trace shortest paths and locate relevant nodes quickly — its snapshot is always current, no separate update step needed. Otherwise, if the local Graphify index exists (`graphify-out/graph.json`), fall back to running `graphify query "<question>"`.

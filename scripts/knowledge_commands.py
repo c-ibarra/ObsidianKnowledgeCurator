@@ -15,7 +15,13 @@ PROJECT_DIR = Path(__file__).parent.parent
 sys.path.insert(0, str(PROJECT_DIR))
 sys.path.append(str(PROJECT_DIR / "scripts"))
 
-from src.config import VAULT_ROOT, PROJECT_ROOT
+from src.config import (
+    VAULT_ROOT,
+    PROJECT_ROOT,
+    GRAPHIFY_DAEMON_GRAPH_JSON,
+    GRAPHIFY_BACKEND,
+    normalize_graphify_backend,
+)
 
 VAULT_BASE = VAULT_ROOT
 AI_ENGINEER_DIR = VAULT_BASE / "dataScienceKnowledgeBase" / "AI Engineer"
@@ -263,19 +269,88 @@ def get_note_summary_from_db_or_file(rel_path_str: str, fs_path: Path) -> str:
         pass
     return get_note_summary(fs_path)
 
+class GraphBackendUnavailable(RuntimeError):
+    """Raised when GRAPHIFY_BACKEND=remote is forced but the daemon's
+    graph.json isn't there or fails to parse -- the whole point of forcing
+    a backend is to know for sure, not to silently fall back."""
+
+
+def _load_graph_data():
+    """Load the concept graph. GRAPHIFY_BACKEND controls the source:
+
+    - "local": only ever reads the legacy graphify_helper.py pipeline's
+      graph.json.
+    - "remote": only ever reads graphify-daemon's output; raises
+      GraphBackendUnavailable instead of falling back if it's not there
+      or fails to parse.
+    - anything else ("auto", unset, or an unrecognized value): today's
+      default -- prefer the daemon's output (live, republishes on every
+      vault batch), fall back to legacy silently.
+
+    Returns (data, path), or (None, None) in local/auto mode when nothing
+    was found.
+    """
+    legacy_path = PROJECT_DIR / "graphify-out" / "graph.json"
+    mode = normalize_graphify_backend(GRAPHIFY_BACKEND)
+
+    if mode == "local":
+        candidates = (legacy_path,)
+    elif mode == "remote":
+        candidates = (GRAPHIFY_DAEMON_GRAPH_JSON,)
+    else:
+        candidates = (GRAPHIFY_DAEMON_GRAPH_JSON, legacy_path)
+
+    for path in candidates:
+        if not path.exists():
+            continue
+        try:
+            with open(path, "r", encoding="utf-8") as f:
+                return json.load(f), path
+        except Exception:
+            continue
+
+    if mode == "remote":
+        raise GraphBackendUnavailable(
+            f"GRAPHIFY_BACKEND=remote but graphify-daemon's graph.json was not "
+            f"found or unreadable at {GRAPHIFY_DAEMON_GRAPH_JSON}."
+        )
+    return None, None
+
+
+def _resolve_source_file(source_file: str):
+    """Build (fs_path, obsidian_uri, rel_path_str) for a node's source_file.
+
+    The legacy graph.json (graphify_helper.py, indexes both the vault and
+    this repo's own code) tags nodes with a `vault://`/`project://` scheme.
+    graphify-daemon's graph.json (vault-only) omits the scheme entirely --
+    every source_file it emits is already vault-relative, so "no scheme"
+    is treated the same as `vault://`.
+    """
+    if source_file.startswith("project://"):
+        rel_path = source_file[len("project://"):]
+        fs_path = PROJECT_DIR / rel_path
+        return fs_path, f"file://{fs_path}", rel_path
+
+    rel_path = source_file[len("vault://"):] if source_file.startswith("vault://") else source_file
+    fs_path = VAULT_BASE / rel_path
+    obsidian_uri = f"obsidian://open?vault={urllib.parse.quote(VAULT_BASE.name)}&file={urllib.parse.quote(rel_path)}"
+    return fs_path, obsidian_uri, rel_path
+
+
 def run_explore(concept: str):
-    graph_path = PROJECT_DIR / "graphify-out" / "graph.json"
-    if not graph_path.exists():
-        print(f"Error: Graphify index not found at {graph_path}. Run /okc-sync or python scripts/graphify_helper.py first.")
-        return
-        
     try:
-        with open(graph_path, "r", encoding="utf-8") as f:
-            data = json.load(f)
-    except Exception as e:
-        print(f"Error loading graph.json: {e}")
+        data, graph_path = _load_graph_data()
+    except GraphBackendUnavailable as e:
+        print(f"Error: {e}")
         return
-        
+    if data is None:
+        legacy_path = PROJECT_DIR / "graphify-out" / "graph.json"
+        print(
+            f"Error: No graphify index found (checked {GRAPHIFY_DAEMON_GRAPH_JSON} "
+            f"and {legacy_path}). Run /okc-sync or python scripts/graphify_helper.py first."
+        )
+        return
+
     nodes = data.get("nodes", [])
     links = data.get("links", [])
     
@@ -319,19 +394,10 @@ def run_explore(concept: str):
     
     fs_path = None
     obsidian_uri = None
-    
+    rel_path_str = ""
+
     if source_file:
-        if source_file.startswith("vault://"):
-            rel_path = source_file[len("vault://"):]
-            fs_path = VAULT_BASE / rel_path
-            obsidian_uri = f"obsidian://open?vault={urllib.parse.quote(VAULT_BASE.name)}&file={urllib.parse.quote(rel_path)}"
-        elif source_file.startswith("project://"):
-            rel_path = source_file[len("project://"):]
-            fs_path = PROJECT_DIR / rel_path
-            obsidian_uri = f"file://{fs_path}"
-        else:
-            fs_path = Path(source_file)
-            obsidian_uri = f"file://{fs_path}"
+        fs_path, obsidian_uri, rel_path_str = _resolve_source_file(source_file)
 
     print(f"\n================================================================================")
     print(f"EXPLORE CONCEPT: {label}")
@@ -344,12 +410,6 @@ def run_explore(concept: str):
     print("--------------------------------------------------------------------------------")
     
     if fs_path:
-        rel_path_str = ""
-        if source_file and source_file.startswith("vault://"):
-            rel_path_str = source_file[len("vault://"):]
-        elif source_file and source_file.startswith("project://"):
-            rel_path_str = source_file[len("project://"):]
-            
         summary = get_note_summary_from_db_or_file(rel_path_str, fs_path)
         print("Summary / Key Takeaways:")
         print(summary)

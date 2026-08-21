@@ -36,7 +36,7 @@ def discover_categories() -> list:
 def run_graphify_helper() -> bool:
     print("=== Updating Graphify Graph & KNOWLEDGE.md Index ===")
     script_path = PROJECT_DIR / "scripts" / "graphify_helper.py"
-    cmd = ["uv", "tool", "run", "--from", "graphifyy", "python", str(script_path)]
+    cmd = ["uv", "tool", "run", "--python", "3.12", "--from", "graphifyy", "python", str(script_path)]
     proc = subprocess.run(cmd, text=True)
     if proc.returncode == 0:
         print("=== Graphify and KNOWLEDGE.md updated successfully ===\n")

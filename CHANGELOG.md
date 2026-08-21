@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.13.0] - 2026-08-21
+
+### Added
+- **Configurable local/remote Graphify backend (`GRAPHIFY_BACKEND`, ADR 0005)**: `scripts/knowledge_commands.py`'s `run_explore()` and `scripts/okc_doctor.py`'s dashboard node/edge counts now read from `graphify-daemon` (a separately-maintained resident MCP process serving an always-current in-RAM graph snapshot) by default, with silent fallback to the legacy `graphify_helper.py` pipeline. `GRAPHIFY_BACKEND=local`/`remote` in `.env` forces one source explicitly (`remote` fails loudly instead of silently falling back). `vault_linter.py`/`update_master_plan.py` are unaffected — the daemon doesn't cover vault metadata (titles, links, contradictions), only the concept graph.
+- New `docs/adr/0005-graphify-daemon-dual-backend.md` documenting the decision and the alternatives considered (including extending the daemon itself, deferred as out of scope).
+- `.agents/rules/graphify.md` rewritten to document the full two-layer graph architecture (vault metadata index vs. concept graph) and the two distinct mechanisms scripts use to reach the daemon (`run_explore()` reads its on-disk snapshot file; `okc_doctor.py` calls its live `graph_stats` MCP tool directly — different freshness characteristics despite sharing one `GRAPHIFY_BACKEND` knob).
+
+## [2.12.0] - 2026-08-17
+
+### Added
+- **OKC Doctor Diagnostic & Synchronization Suite (`scripts/okc_doctor.py`, `/okc-doctor`, `/okc-diagnosticsAndSynchronization`)**: Built an automated, 7-stage full-vault health check, integrity audit, and synchronization suite (ADR 0004).
+- **Invisible Unicode (ZWSP) Detection & Auto-Sanitization (`--fix`)**: Implemented recursive scanning and sanitization of zero-width space characters (`\u200b`, `\u200c`, `\u200d`, `\ufeff`) that interfere with markdown wikilinks, regex parsers, and search indices.
+- **Visual Assets Inspection (`assets/images/`)**: Audits total vs unreferenced visual assets and figures across the vault.
+- **Protected Zones Immutability Audit**: Ensures zero unauthorized modifications across protected engineering zones (`dswok`, `system-design-primer`, `data-science-interviews`, `ai-engineering-field-guide`, `ai-system-design-interview-studio`).
+- **Dedicated Agent Skills (`okc-doctor` & `okc-diagnosticsAndSynchronization`)**: Registered native skills under `.agents/skills/` for frictionless execution with detailed status scorecard generation.
+- **Visual Architecture Asset**: Added `assets/images/okc-linkedin-architecture-card.jpg` documenting the end-to-end multi-modal architecture.
+
 ## [2.11.0] - 2026-08-17
 
 ### Added

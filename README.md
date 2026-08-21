@@ -82,7 +82,17 @@ To enable graph-aware context retrieval across 13,000+ notes without incurring A
 ### 6. Decoupled Skill Factory (`SKILL.md` vs `KNOWLEDGE.md`)
 To prevent system prompt inflation and context degradation:
 - **Behavior Prompt (`SKILL.md`)**: Contains pure agent execution rules, wikilink mandates, and non-hallucination constraints.
-- **Compiled Static Database (`KNOWLEDGE.md`)**: An automatically regenerated index containing ~575+ concept cards with absolute file links across the vault.
+- **Compiled Static Database (`KNOWLEDGE.md`)**: An automatically regenerated index containing ~600+ concept cards with absolute file links across the vault.
+
+### 7. OKC Doctor & Full Diagnostics Suite (`/okc-doctor` & `scripts/okc_doctor.py`)
+A unified 7-stage health check, integrity audit, and synchronization suite:
+- **SQLite Differential Index**: Rapid scan and synchronization across 3,000+ files.
+- **Multi-Category Master Plans**: Dynamic regeneration of all navigation maps.
+- **Wikilink & Contradiction Linter**: Deep scan for broken links, orphan notes, and explicit `[!contradiction]` tags.
+- **Invisible Unicode (ZWSP) Hygiene**: Detects and sanitizes zero-width space characters with `--fix`.
+- **Visual Asset Inspector**: Audits `assets/images/` total vs unreferenced visual assets.
+- **Protected Zones Immutability Audit**: Ensures zero unauthorized modifications across protected engineering zones.
+- **Graphify & `KNOWLEDGE.md` Rebuild**: Updates `graph.json`, `graph_cache.json`, and the concept index in one pass.
 
 ---
 
@@ -101,8 +111,15 @@ flowchart TD
     
     F -->|Offline AST & Wikilink Extraction| H["Graphify Indexer (graphify_helper.py)"]
     G -->|Offline AST & Wikilink Extraction| H
-    H -->|Update Structural Graph| I["graphify-out/graph.json"]
+    H -->|Update Structural Graph| I["graphify-out/graph.json (legacy)"]
     H -->|Regenerate Concept Cards| J["KNOWLEDGE.md Index Card"]
+    
+    F -.->|Live vault watch| M["graphify-daemon (resident process, MCP)"]
+    M -.->|"query_graph / get_node -- always current"| N["Agents (Claude Code, Antigravity)"]
+    M -.->|Periodic snapshot flush| Q["graphify-daemon/out/graph.json"]
+    
+    I -->|"GRAPHIFY_BACKEND=local/auto"| P["run_explore() / okc_doctor.py"]
+    Q -->|"GRAPHIFY_BACKEND=remote/auto"| P
     
     K["Vault Linter / Health Check"] -.->|Scan Links & Orphans| G
     L["Sync Vault Pipeline"] -.->|Auto-Rebuild Master Plans| J
@@ -225,10 +242,16 @@ The vault is strictly divided into four zones to separate immutable sources from
 - **Multi-Format Extraction**: Ingests `.docx`, `.pptx`, `.xlsx`, `.epub`, `.pdf`, `.odt`, and `.csv` using the unified AnyDoc engine (`src/agent_tools/anydoc_engine.py`).
 - **Embedded Asset Extraction**: Extracts embedded figures and charts directly to `<VAULT_ROOT>/assets/images/` and links them with native Obsidian wikilinks.
 
-### 5. Structural Graph Sync (`graphify_helper.py` & `sync_vault.py`)
-- Incrementally updates `graphify-out/graph.json` after every note edit.
+### 5. Structural Graph Sync (`graphify_helper.py`, `sync_vault.py` & `graphify-daemon`)
+- Incrementally updates `graphify-out/graph.json` after every note edit (legacy pipeline).
 - Automatically regenerates `.agents/skills/obsidian-knowledge-curator/KNOWLEDGE.md` with updated concept links.
 - Rebuilds Category Master Plans and audits wikilink health via `vault_linter.py`.
+- **`graphify-daemon`** (a separately-maintained resident process, `~/projects/graphify-daemon`) serves the same concept graph over MCP from an always-current in-RAM snapshot — no rebuild step, republishes on every vault batch. Agents (Claude Code, Antigravity) query it directly via its MCP tools (`query_graph`, `get_node`, `shortest_path`, etc.) whenever it's running.
+- `scripts/knowledge_commands.py`'s `run_explore()` and `scripts/okc_doctor.py`'s dashboard node/edge counts read from the daemon by default too, controlled by `GRAPHIFY_BACKEND` in `.env` (`auto`/`local`/`remote` — see ADR 0005 and `.agents/rules/graphify.md` for the full architecture, including the scope/freshness trade-offs between the legacy pipeline and the daemon). `vault_linter.py`/`update_master_plan.py` remain local-only — the daemon doesn't index vault metadata (titles, links, contradictions), only the concept graph.
+
+### 6. Full Diagnostics & Auto-Repair (`scripts/okc_doctor.py`, `/okc-doctor`)
+- Comprehensive 7-stage health check across the entire vault.
+- Runs SQLite index differential sync, multi-category Master Plan updates, dead wikilink & contradiction scans, invisible unicode (ZWSP) sanitation (`--fix`), visual assets inspection, and Graphify rebuild.
 
 ---
 

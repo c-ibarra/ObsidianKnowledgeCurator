@@ -107,6 +107,10 @@ The project has automation tools in the `scripts/` folder to completely streamli
    - **Purpose**: Dual-mode interactive and headless environment setup wizard. Generates private `.env` safely from `.env.template`, auto-detects Vault paths (`~/Documents/Obsidian`), validates system dependencies (`obsidian`, `yt-dlp`, `buzz`, `ffmpeg`, `uv`), and initializes Graphify sync.
    - **Execution**: `uv run python scripts/setup_project.py` or slash command `/okc-setup`
 
+9. **`scripts/okc_doctor.py`**:
+   - **Purpose**: Comprehensive health check, integrity audit, and full synchronization suite across all vault categories. Scans SQLite index, Master Plans, dead links, contradictions, ZWSP unicode hygiene, unreferenced assets in `assets/images/`, protected zones, and rebuilds Graphify + `KNOWLEDGE.md` index. Supports `--fix` for auto-repair.
+   - **Execution**: `uv run python scripts/okc_doctor.py` (or `uv run python scripts/okc_doctor.py --fix`) or slash command `/okc-doctor` / `/okc-diagnosticsAndSynchronization`
+
 ---
 
 **Read the `obsidian-cli` skill first**, then execute:
