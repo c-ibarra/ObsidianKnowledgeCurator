@@ -19,6 +19,11 @@ To run diagnostics with automatic sanitization (clean ZWSP artifacts and fix iss
 uv run python scripts/okc_doctor.py --fix
 ```
 
+To archive unreferenced orphaned images in `assets/images/` to `assets/images/_archive/`:
+```bash
+uv run python scripts/okc_doctor.py --clean-assets
+```
+
 ## Checks Executed
 1. **SQLite Database Index**: Differential synchronization of all vault files.
 2. **Category Master Plans**: Dynamic regeneration of all navigation maps across vault categories.

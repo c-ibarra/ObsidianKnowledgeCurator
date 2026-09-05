@@ -172,8 +172,50 @@ def test_resolve_graphify_source_remote_backend_raises_instead_of_falling_back()
     print("test_resolve_graphify_source_remote_backend_raises_instead_of_falling_back: PASS")
 
 
+def test_check_orphaned_assets_detection_and_archival():
+    with tempfile.TemporaryDirectory() as tmp_vault:
+        vault_path = Path(tmp_vault)
+        img_dir = vault_path / "assets" / "images"
+        img_dir.mkdir(parents=True)
+
+        # Create images
+        (img_dir / "referenced.png").write_text("fake png 1")
+        (img_dir / "orphaned.png").write_text("fake png 2")
+        (img_dir / "another_orphan.jpg").write_text("fake jpg")
+
+        # Create a note referencing referenced.png
+        note_path = vault_path / "note.md"
+        note_path.write_text("Here is an embed: ![[assets/images/referenced.png]]")
+
+        original_vault = doctor.VAULT_ROOT
+        try:
+            doctor.VAULT_ROOT = vault_path
+
+            # 1. Audit mode (auto_archive=False)
+            report = doctor.DoctorReport()
+            doctor.check_orphaned_assets(report, auto_archive=False)
+            assert report.total_images == 3
+            assert report.orphaned_images == 2
+            assert report.archived_assets_count == 0
+            assert (img_dir / "orphaned.png").exists()
+
+            # 2. Archive mode (auto_archive=True)
+            report_fix = doctor.DoctorReport()
+            doctor.check_orphaned_assets(report_fix, auto_archive=True)
+            assert report_fix.archived_assets_count == 2
+            assert report_fix.orphaned_images == 0
+            assert report_fix.total_images == 1
+            assert not (img_dir / "orphaned.png").exists()
+            assert (img_dir / "_archive" / "orphaned.png").exists()
+            assert (img_dir / "_archive" / "another_orphan.jpg").exists()
+            assert (img_dir / "referenced.png").exists()
+        finally:
+            doctor.VAULT_ROOT = original_vault
+    print("test_check_orphaned_assets_detection_and_archival: PASS")
+
+
 def main():
-    print("=== RUNNING OKC_DOCTOR GRAPHIFY-DAEMON INTEGRATION TESTS ===")
+    print("=== RUNNING OKC_DOCTOR TESTS ===")
     test_returns_none_without_api_key()
     test_returns_none_when_daemon_unreachable()
     test_parses_nodes_and_edges_from_sse_body()
@@ -181,6 +223,7 @@ def main():
     test_resolve_graphify_source_local_backend_skips_daemon()
     test_resolve_graphify_source_remote_backend_uses_daemon()
     test_resolve_graphify_source_remote_backend_raises_instead_of_falling_back()
+    test_check_orphaned_assets_detection_and_archival()
     print("=== ALL TESTS PASSED ===")
 
 

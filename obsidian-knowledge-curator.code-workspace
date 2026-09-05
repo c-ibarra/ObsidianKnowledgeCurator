@@ -1,0 +1,20 @@
+{
+	"folders": [
+		{
+			"name": "Obsidian Knowledge Curator",
+			"path": "."
+		},
+		{
+			"name": "Obsidian Vault",
+			"path": "/Users/carlosibarra/Documents/Obsidian"
+		}
+	],
+	"settings": {
+		"python.defaultInterpreterPath": "${workspaceFolder:Obsidian Knowledge Curator}/.venv/bin/python",
+		"python.terminal.activateEnvironment": true,
+		"files.exclude": {
+			"**/.git": true,
+			"**/.DS_Store": true
+		}
+	}
+}

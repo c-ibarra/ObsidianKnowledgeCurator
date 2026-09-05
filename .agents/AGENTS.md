@@ -12,7 +12,7 @@ When the user starts a message with a slash command, you must immediately execut
     *   *Execution:* Run `uv run python scripts/fetch_book_data.py --input "<input>"`. Read `temp/fetched_book_data.json` and `temp/fetched_book_data.txt`, generate book notes and chapter files directly in `VAULT_ROOT/dataScienceKnowledgeBase/<Category>/raw/books/`, compile concepts in `wiki/`, run `uv run python scripts/fetch_book_data.py --clean`, and run `uv run python scripts/sync_vault.py`.
 *   **`/okc-diagnosticsAndSynchronization [flags]`** / **`/okc-doctor [flags]`**
     *   *Purpose:* Comprehensive health check, integrity audit, and full synchronization across the entire Obsidian vault. Scans SQLite DB, Master Plans, dead wikilinks, contradictions, ZWSP unicode hygiene, unreferenced visual assets, protected zones, and rebuilds Graphify + KNOWLEDGE.md index. Supports `--fix` for auto-repair.
-    *   *Execution:* `uv run python scripts/okc_doctor.py` (or `uv run python scripts/okc_doctor.py --fix`)
+    *   *Execution:* `uv run python scripts/okc_doctor.py` (or `uv run python scripts/okc_doctor.py --fix` / `--clean-assets`)
 *   **`/okc-doc <input>`**
     *   *Purpose:* Ingest an office document, presentation, spreadsheet, EPUB or PDF (`.docx`, `.pptx`, `.xlsx`, `.epub`, `.pdf`, `.odt`, `.csv`) using AnyDoc (`firecrawl-anydoc`). Converts to clean Markdown, extracts embedded images to `<VAULT_ROOT>/assets/images/`, curates note in `raw/`, compiles concepts in `wiki/`, and syncs the vault.
     *   *Execution:* Run `uv run python scripts/fetch_doc_data.py --input "<input>"`. Read `temp/fetched_data.json` and `temp/fetched_data.txt`, generate curated note in `raw/`, compile concepts in `wiki/`, and run `uv run python scripts/sync_vault.py`.
@@ -31,6 +31,9 @@ When the user starts a message with a slash command, you must immediately execut
 *   **`/okc-linter`**
     *   *Purpose:* Run vault linter separately.
     *   *Execution:* `uv run python scripts/vault_linter.py`
+*   **`/okc-normalize [flags]`**
+    *   *Purpose:* Audit, deduplicate, remove stubs, and inject canonical Obsidian headers into notes in a category or folder. Supports `--fix` and `--sync`.
+    *   *Execution:* `uv run python scripts/normalize_notes.py --target "<folder>" [--fix] [--sync]`
 *   **`/okc-notion [flags]`**
     *   *Purpose:* Curate, format, compile wiki concepts, and update Master Plans for imported Notion folders.
     *   *Execution:* Run `uv run python scripts/curate_notion_import.py --notion-dir "<dir>" --target-kb "<category>" --course-name "<course>" --execute`.

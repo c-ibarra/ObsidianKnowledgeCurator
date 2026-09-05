@@ -86,9 +86,16 @@ def parse_note_metadata(content: str, rel_path: Path) -> dict:
     in_blockquote = False
     contradictions = []
 
-    # 1. Parse title, blockquote, and contradictions
+    # 1. Parse title, blockquote, and contradictions (skip fenced code blocks)
+    in_code_block = False
     for line_idx, line in enumerate(lines, 1):
         stripped = line.strip()
+        if stripped.startswith("```"):
+            in_code_block = not in_code_block
+            continue
+        if in_code_block:
+            continue
+
         if stripped.startswith("# ") and not title:
             title = stripped[2:].strip()
         elif stripped.startswith(">"):
@@ -97,12 +104,14 @@ def parse_note_metadata(content: str, rel_path: Path) -> dict:
         elif in_blockquote and not stripped.startswith(">") and stripped != "":
             in_blockquote = False # End of blockquote
             
-        if "[!contradiction]" in line:
+        if re.match(r"^>\s*\[!contradiction\]", stripped, re.IGNORECASE):
             contradictions.append((line_idx, stripped))
 
-    # 2. Extract links
-    link_pattern = re.compile(r'\[\[(.*?)\]\]')
-    raw_links = link_pattern.findall(content)
+    # 2. Extract links (strip code fences and inline code to prevent false positives from nested arrays like [[1, 2], [3, 4]])
+    content_no_code = re.sub(r'```[\s\S]*?```', '', content)
+    content_no_code = re.sub(r'`[^`\r\n]*`', '', content_no_code)
+    link_pattern = re.compile(r'\[\[([^\[\]\r\n]+)\]\]')
+    raw_links = link_pattern.findall(content_no_code)
     links = []
     for link in raw_links:
         target = link.split('|')[0].strip()
@@ -240,7 +249,7 @@ def delete_file_from_db(file_path: Path, vault_base: Path, conn: sqlite3.Connect
     with conn:
         conn.execute("DELETE FROM files WHERE path = ?", (rel_path_str,))
 
-def sync_db(vault_base: Path, conn: sqlite3.Connection):
+def sync_db(vault_base: Path, conn: sqlite3.Connection, force: bool = False, target_folder: str | None = None):
     """Incrementally synchronize files in the vault base with the SQLite database."""
     init_db(conn)
     
@@ -287,9 +296,15 @@ def sync_db(vault_base: Path, conn: sqlite3.Connection):
             cursor.executemany("DELETE FROM files WHERE path = ?", [(p,) for p in stale_paths])
             
     # 5. Apply insertions and updates
-    to_update = new_paths.union(modified_paths)
+    if force:
+        to_update = disk_paths
+    elif target_folder:
+        to_update = {p for p in disk_paths if p.startswith(target_folder)}
+    else:
+        to_update = new_paths.union(modified_paths)
+
     if to_update:
-        print(f"Indexing {len(to_update)} new/modified files in SQLite index...")
+        print(f"Indexing {len(to_update)} files in SQLite index...")
         for p in to_update:
             file_path = disk_files[p][0]
             upsert_file_in_db(file_path, vault_base, conn)
@@ -297,7 +312,12 @@ def sync_db(vault_base: Path, conn: sqlite3.Connection):
     print(f"SQLite index sync complete. Active files: {len(disk_files)}.")
 
 if __name__ == "__main__":
-    # Test connection and sync
+    import argparse
+    parser = argparse.ArgumentParser(description="Synchronize vault with SQLite database index.")
+    parser.add_argument("--force", action="store_true", help="Force re-indexing of all files.")
+    parser.add_argument("--folder", type=str, default=None, help="Specific folder to re-index.")
+    args = parser.parse_args()
+
     connection = get_vault_db_connection()
-    sync_db(VAULT_ROOT, connection)
+    sync_db(VAULT_ROOT, connection, force=args.force, target_folder=args.folder)
     connection.close()

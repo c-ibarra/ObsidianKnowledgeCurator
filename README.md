@@ -14,7 +14,29 @@ An autonomous, agentic knowledge compiler designed to maintain and synthesize a 
 
 ---
 
+## 👋 For Non-Technical Readers
+
+**What this is.** A personal automation system that turns a large, ever-growing pile of technical reading (articles, videos, podcasts, books) into a structured, searchable knowledge base — automatically. Instead of bookmarking content and never revisiting it, the system reads it, judges whether it's actually worth keeping, extracts the key ideas, cross-links them to everything already known, and flags contradictions as understanding evolves.
+
+**Who it's for.** Built and maintained by one engineer for personal use — a working example of applying real software-engineering discipline (automated tests, architecture decision records, staged rollouts, health monitoring) to a personal productivity problem, not a commercial product or team tool.
+
+**Why it matters.** It demonstrates hands-on experience with skills relevant well beyond this project: designing multi-stage automation pipelines, orchestrating multiple AI models efficiently (grading content before spending compute on it, avoiding unnecessary API costs), building systems that degrade gracefully when a data source fails or changes instead of breaking outright, and documenting the reasoning behind architectural decisions so the system stays legible over time (see [`docs/adr/`](docs/adr/)).
+
+**Maturity.** Actively developed and in daily personal use, managing a growing multi-thousand-note vault. Not intended for external users or production deployment — no support contract, no SLA, no multi-tenant design.
+
+**What's under the hood, in plain terms:**
+- **Reads and judges content before saving it** — automatically scores incoming articles and videos for how substantive they are, so low-value content doesn't clutter the knowledge base.
+- **Builds a live map of how ideas connect** — every note is linked to related concepts automatically, without paying an AI model to work out the connections every time.
+- **Catches contradictions** — flags when a newer note disagrees with something recorded earlier, instead of silently letting outdated conclusions persist.
+- **Runs a full health check on demand** — one command audits the entire knowledge base (broken links, duplicate content, orphaned files, structural integrity) and can auto-repair common issues.
+- **Keeps working when a data source misbehaves** — web scraping has three fallback tiers, so a paywall or a blocked scraper doesn't just fail silently.
+
+The rest of this document is the technical reference — architecture, setup, and workflow detail for engineers evaluating or extending the system. Start with [Key Architectural Innovations](#-key-architectural-innovations) for the plain-terms list above translated into implementation detail.
+
+---
+
 ## 📖 Table of Contents
+- [For Non-Technical Readers](#-for-non-technical-readers)
 - [Project Overview](#-project-overview)
 - [Problem Statement](#-problem-statement)
 - [Key Architectural Innovations](#-key-architectural-innovations)

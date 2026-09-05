@@ -77,6 +77,15 @@ SCRIPTS_DIR: Path = PROJECT_ROOT / "scripts"
 # Obsidian CLI Path
 OBSIDIAN_CLI_PATH: str = os.environ.get("OBSIDIAN_CLI_PATH", "/opt/homebrew/bin/obsidian")
 
+# Protected Zones (Strictly Read-Only, Never Modify or Cluster)
+PROTECTED_ZONES: tuple[str, ...] = (
+    "dswok",
+    "system-design-primer",
+    "data-science-interviews",
+    "ai-engineering-field-guide",
+    "ai-system-design-interview-studio",
+)
+
 # graphify-daemon: the live MCP daemon serving this vault's knowledge graph
 # (~/projects/graphify-daemon). Preferred over the legacy graphify-out/
 # pipeline when reachable -- see .agents/rules/graphify.md.

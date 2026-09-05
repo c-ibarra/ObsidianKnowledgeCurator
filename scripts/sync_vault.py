@@ -60,15 +60,11 @@ def run_database_sync() -> bool:
 def main():
     parser = argparse.ArgumentParser(description="Vault Sync & Integrity Checker")
     parser.add_argument("--target-kb", default="dataScienceKnowledgeBase/AI Engineer", help="Target knowledge base folder relative to vault root, or 'all'")
+    parser.add_argument("--normalize", action="store_true", help="Pre-flight normalization of missing headers and duplicate notes across target categories")
     args = parser.parse_args()
 
     print("================================================================================")
     print("VAULT SYNC & INTEGRITY CHECK")
-    print("================================================================================")
-    
-    # 0. Sync SQLite database index
-    if not run_database_sync():
-        sys.exit(1)
     print("================================================================================")
     
     categories = []
@@ -77,6 +73,21 @@ def main():
         print(f"Auto-discovered categories: {categories}\n")
     else:
         categories = [args.target_kb]
+
+    # Pre-flight normalization if requested
+    if args.normalize:
+        print("=== Running Pre-flight Note Normalization ===")
+        for category in categories:
+            raw_dir = VAULT_BASE / category / "raw"
+            if raw_dir.exists():
+                for subfolder in [f for f in raw_dir.iterdir() if f.is_dir() and not f.name.startswith((".", "_"))]:
+                    run_script("normalize_notes.py", ["--target", str(subfolder), "--fix"])
+        print("=== Pre-flight Note Normalization Complete ===\n")
+
+    # 0. Sync SQLite database index
+    if not run_database_sync():
+        sys.exit(1)
+    print("================================================================================")
         
     for category in categories:
         print(f"--- Processing Category: {category} ---")

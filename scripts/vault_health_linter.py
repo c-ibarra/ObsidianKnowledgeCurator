@@ -71,8 +71,11 @@ def run_linter(target_dir_name: str):
                     "text": line.strip()
                 })
                 
-        # Extract wikilinks
-        links = link_pattern.findall(content)
+        # Extract wikilinks (strip code blocks to avoid false positives)
+        content_no_code = re.sub(r'```[\s\S]*?```', '', content)
+        content_no_code = re.sub(r'`[^`\r\n]*`', '', content_no_code)
+        link_pattern = re.compile(r'\[\[([^\[\]\r\n]+)\]\]')
+        links = link_pattern.findall(content_no_code)
         for link in links:
             # Clean link (remove alias [[file|alias]])
             target = link.split('|')[0].strip()

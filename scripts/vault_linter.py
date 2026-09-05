@@ -14,7 +14,7 @@ from pathlib import Path
 PROJECT_DIR = Path(__file__).parent.parent
 sys.path.insert(0, str(PROJECT_DIR))
 
-from src.config import VAULT_ROOT, PROJECT_ROOT
+from src.config import VAULT_ROOT, PROJECT_ROOT, PROTECTED_ZONES
 
 VAULT_BASE = VAULT_ROOT
 
@@ -133,6 +133,8 @@ def run_linter(target_kb: str = "dataScienceKnowledgeBase/AI Engineer", write_ch
         note_rows = cursor.fetchall()
         
         for name, path_str, content in note_rows:
+            if any(pz in path_str for pz in PROTECTED_ZONES):
+                continue
             file_path = VAULT_BASE / path_str
             try:
                 rel_path = file_path.relative_to(target_kb_dir)
@@ -165,6 +167,8 @@ def run_linter(target_kb: str = "dataScienceKnowledgeBase/AI Engineer", write_ch
             """, (f"{target_kb}/%",))
         contra_rows = cursor.fetchall()
         for file_path_str, line_num, text, name in contra_rows:
+            if any(pz in file_path_str for pz in PROTECTED_ZONES):
+                continue
             contradictions.append({
                 "note": name,
                 "abs_path": VAULT_BASE / file_path_str,
@@ -191,6 +195,8 @@ def run_linter(target_kb: str = "dataScienceKnowledgeBase/AI Engineer", write_ch
         link_rows = cursor.fetchall()
         
         for source_path_str, target_name, source_name in link_rows:
+            if any(pz in source_path_str for pz in PROTECTED_ZONES):
+                continue
             if source_name in all_notes:
                 all_notes[source_name]["outgoing"].append(target_name)
             all_links.add(target_name)
@@ -216,12 +222,21 @@ def run_linter(target_kb: str = "dataScienceKnowledgeBase/AI Engineer", write_ch
     
     for target in all_links:
         # Resolve target links globally against all notes and assets in the entire vault
-        if target not in all_notes and target not in global_note_names:
-            dead_links.append(target)
-            # Find best suggestion
-            match, score = find_best_candidate(target, candidate_pool)
-            if match:
-                dead_link_suggestions[target] = (match, score)
+        target_stem = Path(target).name
+        target_path = VAULT_BASE / target
+        if (
+            target in all_notes
+            or target in global_note_names
+            or target_stem in global_note_names
+            or target_path.exists()
+        ):
+            continue
+
+        dead_links.append(target)
+        # Find best suggestion
+        match, score = find_best_candidate(target, candidate_pool)
+        if match:
+            dead_link_suggestions[target] = (match, score)
             
     orphans = []
     for note_name, data in all_notes.items():
@@ -272,11 +287,10 @@ def run_linter(target_kb: str = "dataScienceKnowledgeBase/AI Engineer", write_ch
     print(f"\n[!] PROVENANCE & UNICODE HYGIENE AUDIT:")
     unclean_notes = []
     try:
-        from src.agent_tools.sanitizer import sanitize_text
+        ZWSP_REGEX = re.compile(r'[\u200B-\u200D\uFEFF]')
         for note_name, data in all_notes.items():
             raw_c = data["content"]
-            clean_c = sanitize_text(raw_c)
-            if clean_c != raw_c:
+            if ZWSP_REGEX.search(raw_c):
                 unclean_notes.append(note_name)
     except Exception as e:
         print(f"  Warning during hygiene audit: {e}")

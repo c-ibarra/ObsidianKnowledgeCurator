@@ -66,6 +66,12 @@ class DoctorReport:
         self.assets_status = "🟢 OK"
         self.total_images = 0
         self.orphaned_images = 0
+        self.archived_assets_count = 0
+        self.hygiene_status = "🟢 OK"
+        self.unnormalized_count = 0
+        self.duplicates_count = 0
+        self.stubs_count = 0
+        self.hygiene_fixed_count = 0
         self.protected_status = "🟢 OK"
         self.protected_intact = True
         self.graphify_status = "🟢 OK"
@@ -135,15 +141,16 @@ def check_and_clean_zwsp(report: DoctorReport, auto_fix: bool = False) -> bool:
     zwsp_fixed = 0
 
     for md_file in VAULT_ROOT.rglob("*.md"):
-        # Skip protected zones if fixing
+        # Skip protected zones completely (never scan or modify protected zones)
         rel_str = str(md_file.relative_to(VAULT_ROOT))
-        is_protected = any(pz in rel_str for pz in PROTECTED_ZONES)
+        if any(pz in rel_str for pz in PROTECTED_ZONES):
+            continue
 
         try:
             content = md_file.read_text(encoding="utf-8", errors="ignore")
             if ZWSP_REGEX.search(content):
                 zwsp_found += 1
-                if auto_fix and not is_protected:
+                if auto_fix:
                     cleaned = ZWSP_REGEX.sub("", content)
                     md_file.write_text(cleaned, encoding="utf-8")
                     zwsp_fixed += 1
@@ -162,13 +169,17 @@ def check_and_clean_zwsp(report: DoctorReport, auto_fix: bool = False) -> bool:
     return True
 
 
-def check_orphaned_assets(report: DoctorReport) -> bool:
+def check_orphaned_assets(report: DoctorReport, auto_archive: bool = False) -> bool:
+    import urllib.parse
+    import shutil
+
     img_dir = VAULT_ROOT / "assets" / "images"
     if not img_dir.exists():
         report.assets_status = "🟢 OK"
         return True
 
-    all_images = {img.name for img in img_dir.glob("*") if img.is_file() and not img.name.startswith(".")}
+    # Exclude files starting with '.' or '_' (such as _archive/)
+    all_images = {img.name for img in img_dir.glob("*") if img.is_file() and not img.name.startswith((".", "_"))}
     report.total_images = len(all_images)
 
     # Search references in all markdown files
@@ -177,7 +188,7 @@ def check_orphaned_assets(report: DoctorReport) -> bool:
         try:
             txt = md_file.read_text(encoding="utf-8", errors="ignore")
             for img_name in all_images:
-                if img_name in txt:
+                if img_name in txt or urllib.parse.quote(img_name) in txt or urllib.parse.unquote(img_name) in txt:
                     referenced.add(img_name)
         except Exception:
             pass
@@ -185,10 +196,73 @@ def check_orphaned_assets(report: DoctorReport) -> bool:
     orphaned = all_images - referenced
     report.orphaned_images = len(orphaned)
 
-    if report.orphaned_images > 10:
+    if auto_archive and orphaned:
+        archive_dir = img_dir / "_archive"
+        archive_dir.mkdir(parents=True, exist_ok=True)
+        archived_count = 0
+        for img_name in orphaned:
+            src = img_dir / img_name
+            if src.exists():
+                try:
+                    shutil.move(str(src), str(archive_dir / img_name))
+                    archived_count += 1
+                except Exception:
+                    pass
+        report.archived_assets_count = archived_count
+        report.orphaned_images = 0
+        report.total_images -= archived_count
+        report.assets_status = f"🟢 OK (Archivadas: {archived_count})"
+    elif report.orphaned_images > 10:
         report.assets_status = "🟡 Info"
     else:
         report.assets_status = "🟢 OK"
+    return True
+
+
+def check_note_hygiene(report: DoctorReport, auto_fix: bool = False) -> bool:
+    """Audits notes across raw/ directories for missing headers, duplicate notes, and stubs."""
+    from src.agent_tools.note_normalizer import NoteNormalizer
+
+    categories = discover_vault_categories(VAULT_ROOT)
+    total_unnormalized = 0
+    total_duplicates = 0
+    total_stubs = 0
+    total_fixed = 0
+
+    for cat in categories:
+        raw_dir = VAULT_ROOT / cat / "raw"
+        if not raw_dir.exists():
+            continue
+        for subfolder in [f for f in raw_dir.iterdir() if f.is_dir() and not f.name.startswith((".", "_"))]:
+            try:
+                rel_str = str(subfolder.relative_to(VAULT_ROOT))
+            except Exception:
+                rel_str = str(subfolder)
+
+            if any(pz in rel_str for pz in PROTECTED_ZONES):
+                continue
+
+            normalizer = NoteNormalizer(target_dir=subfolder, dry_run=not auto_fix, auto_sync=False)
+            res = normalizer.run()
+            total_unnormalized += len(res["normalized"])
+            total_duplicates += len(res["duplicates"])
+            total_stubs += len(res["stubs"])
+            if auto_fix:
+                total_fixed += len(res["normalized"]) + len(res["duplicates"]) + len(res["stubs"])
+
+    report.unnormalized_count = total_unnormalized
+    report.duplicates_count = total_duplicates
+    report.stubs_count = total_stubs
+    report.hygiene_fixed_count = total_fixed
+
+    issues = total_unnormalized + total_duplicates + total_stubs
+    if issues > 0 and not auto_fix:
+        report.hygiene_status = "🟡 Warning"
+    elif auto_fix and issues > 0:
+        report.hygiene_status = "🟢 OK (Reparado)"
+    else:
+        report.hygiene_status = "🟢 OK"
+
     return True
 
 
@@ -292,7 +366,7 @@ def _resolve_graphify_source(report: DoctorReport, graph_file: Path) -> None:
 
 def check_graphify(report: DoctorReport) -> bool:
     script_path = PROJECT_DIR / "scripts" / "graphify_helper.py"
-    cmd = ["uv", "tool", "run", "--from", "graphifyy", "python", str(script_path)]
+    cmd = ["uv", "tool", "run", "--python", "3.12", "--from", "graphifyy", "python", str(script_path)]
     res = subprocess.run(cmd, capture_output=True, text=True)
 
     graph_file = GRAPHIFY_OUT_DIR / "graph.json"
@@ -343,7 +417,8 @@ def render_dashboard(report: DoctorReport, auto_fix: bool) -> str:
 | **Master Plans (Categorías)** | {report.master_plans_status} | {report.master_plans_count} planes de navegación sincronizados y reconstruidos. |
 | **Integridad de Enlaces & Linter** | {report.linter_status} | `{report.broken_links_count}` enlaces por verificar · `{report.contradictions_count}` contradicciones explícitas. |
 | **Higiene Unicode (ZWSP)** | {report.zwsp_status} | `{report.zwsp_files_count}` archivos con caracteres invisibles {'(reparados: ' + str(report.zwsp_fixed_count) + ')' if auto_fix else '(usa --fix para limpiar)'}. |
-| **Recursos Visuales (`assets/images/`)** | {report.assets_status} | `{report.total_images}` imágenes totales · `{report.orphaned_images}` no referenciadas. |
+| **Recursos Visuales (`assets/images/`)** | {report.assets_status} | `{report.total_images}` imágenes activas · `{report.orphaned_images}` no referenciadas {'(reparadas: ' + str(report.archived_assets_count) + ' archivadas en _archive/)' if report.archived_assets_count > 0 else '(usa --clean-assets para archivar)'}. |
+| **Normalización & Duplicados** | {report.hygiene_status} | `{report.unnormalized_count}` sin encabezado canónico · `{report.duplicates_count}` duplicados exactos · `{report.stubs_count}` stubs {'(reparados: ' + str(report.hygiene_fixed_count) + ')' if auto_fix else '(usa --fix para reparar)'}. |
 | **Zonas Protegidas (Read-Only)** | {report.protected_status} | 5 áreas protegidas auditadas e intactas sin alteraciones. |
 | **Grafo Graphify & `KNOWLEDGE.md`** | {report.graphify_status} | `{report.graph_nodes:,}` nodos · `{report.graph_edges:,}` conexiones ({graph_source_label}) · `{report.knowledge_concepts}` conceptos en índice. |
 
@@ -352,9 +427,14 @@ def render_dashboard(report: DoctorReport, auto_fix: bool) -> str:
 ### 💡 Resumen Ejecutivo & Recomendaciones
 """
     if auto_fix:
-        dashboard += "- ✅ Se ejecutó la limpieza automática de caracteres invisibles ZWSP en los archivos afectados.\n"
-    elif report.zwsp_files_count > 0:
-        dashboard += f"- ⚠️ Se detectaron {report.zwsp_files_count} archivos con caracteres invisibles. Ejecuta `/okc-doctor --fix` para limpiarlos automáticamente.\n"
+        dashboard += "- ✅ Se ejecutó la limpieza automática de caracteres invisibles ZWSP y saneamiento de notas.\n"
+    elif report.zwsp_files_count > 0 or report.duplicates_count > 0 or report.stubs_count > 0:
+        dashboard += f"- ⚠️ Se detectaron {report.zwsp_files_count} archivos ZWSP y {report.duplicates_count + report.stubs_count} duplicados/stubs. Ejecuta `/okc-doctor --fix` para sanearlos automáticamente.\n"
+
+    if report.archived_assets_count > 0:
+        dashboard += f"- 🗄️ Se archivaron {report.archived_assets_count} imágenes no referenciadas en `assets/images/_archive/` de forma segura.\n"
+    elif report.orphaned_images > 10:
+        dashboard += f"- ℹ️ Existen {report.orphaned_images} imágenes no referenciadas en `assets/images/`. Ejecuta `/okc-doctor --clean-assets` para archivarlas de forma segura en `_archive/`.\n"
 
     if report.broken_links_count > 0:
         dashboard += f"- ℹ️ Existen {report.broken_links_count} enlaces no resueltos en notas históricas; el índice Graphify los mantiene mapeados como entidades emergentes.\n"
@@ -365,32 +445,36 @@ def render_dashboard(report: DoctorReport, auto_fix: bool) -> str:
 
 def main():
     parser = argparse.ArgumentParser(description="OKC Doctor — Health Check and Sync")
-    parser.add_argument("--fix", action="store_true", help="Auto-repair issues like ZWSP and high-certainty links")
+    parser.add_argument("--fix", action="store_true", help="Auto-repair issues like ZWSP, note headers, and duplicates")
+    parser.add_argument("--clean-assets", "--archive-assets", dest="clean_assets", action="store_true", help="Move orphaned images in assets/images/ to _archive/")
     args = parser.parse_args()
 
     start_time = time.time()
     report = DoctorReport()
 
     print("🩺 Iniciando diagnóstico completo de la bóveda de Obsidian...")
-    print("  [1/7] Sincronizando base de datos SQLite...")
+    print("  [1/8] Sincronizando base de datos SQLite...")
     check_sqlite(report)
 
-    print("  [2/7] Reconstruyendo Master Plans por categoría...")
+    print("  [2/8] Reconstruyendo Master Plans por categoría...")
     check_master_plans(report)
 
-    print("  [3/7] Auditando enlaces rotos y contradicciones...")
+    print("  [3/8] Auditando enlaces rotos y contradicciones...")
     check_linter(report)
 
-    print("  [4/7] Escaneando higiene Unicode (ZWSP)...")
+    print("  [4/8] Escaneando higiene Unicode (ZWSP)...")
     check_and_clean_zwsp(report, auto_fix=args.fix)
 
-    print("  [5/7] Verificando recursos en assets/images/...")
-    check_orphaned_assets(report)
+    print("  [5/8] Auditando higiene de notas y duplicados...")
+    check_note_hygiene(report, auto_fix=args.fix)
 
-    print("  [6/7] Auditando zonas protegidas...")
+    print("  [6/8] Verificando recursos en assets/images/...")
+    check_orphaned_assets(report, auto_archive=args.clean_assets)
+
+    print("  [7/8] Auditando zonas protegidas...")
     check_protected_zones(report)
 
-    print("  [7/7] Reconstruyendo grafo Graphify y KNOWLEDGE.md...")
+    print("  [8/8] Reconstruyendo grafo Graphify y KNOWLEDGE.md...")
     check_graphify(report)
 
     report.duration = time.time() - start_time

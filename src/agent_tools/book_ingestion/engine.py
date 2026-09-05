@@ -35,6 +35,21 @@ def estimate_tokens(text: str) -> int:
         return int(words / WORDS_PER_TOKEN)
 
 
+def _parse_roman(roman_str: str) -> int | None:
+    roman_vals = {"I": 1, "V": 5, "X": 10, "L": 50, "C": 100, "D": 500, "M": 1000}
+    s = roman_str.upper()
+    val = 0
+    prev_val = 0
+    for char in reversed(s):
+        curr = roman_vals.get(char, 0)
+        if curr >= prev_val:
+            val += curr
+        else:
+            val -= curr
+        prev_val = curr
+    return val if val > 0 else None
+
+
 def chapter_number(line: str) -> int | None:
     """Detects whether a line represents an explicit chapter title and returns its number."""
     m = _EXPLICIT_CHAPTER.match(line)
@@ -44,19 +59,11 @@ def chapter_number(line: str) -> int | None:
             return int(num_str)
         roman_str = m.group("roman")
         if roman_str:
-            roman_vals = {"I": 1, "V": 5, "X": 10, "L": 50, "C": 100, "D": 500, "M": 1000}
-            val = 0
-            for char in roman_str.upper():
-                val += roman_vals.get(char, 0)
-            return val if val > 0 else None
+            return _parse_roman(roman_str)
 
     m_rom = _ROMAN_HEAD.match(line)
     if m_rom:
-        roman_vals = {"I": 1, "V": 5, "X": 10, "L": 50, "C": 100, "D": 500, "M": 1000}
-        val = 0
-        for char in m_rom.group(1).upper():
-            val += roman_vals.get(char, 0)
-        return val if val > 0 else None
+        return _parse_roman(m_rom.group(1))
 
     return None
 
