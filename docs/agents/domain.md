@@ -5,7 +5,7 @@ This repository uses a single-context domain documentation structure.
 ## Layout
 
 - **Root Context File:** `GEMINI.md` (and `CONTEXT.md` if present) at the repository root defines the system architecture, vault rules, and core workflow.
-- **Architecture Decision Records (ADRs):** Stored under `docs/adr/` using sequential numbering (`0001-migration-to-antigravity.md`, `0002-unified-sync-and-fast-search.md`, `0003-centralized-configuration-and-setup-wizard.md`).
+- **Architecture Decision Records (ADRs):** Stored under `docs/adr/` using sequential numbering (`0001-migration-to-antigravity.md`, `0002-unified-sync-and-fast-search.md`, `0003-centralized-configuration-and-setup-wizard.md`, `0004-okc-doctor-unified-diagnostics-and-sync.md`, `0005-graphify-daemon-dual-backend.md`, `0006-note-normalizer-and-sanitizer.md`).
 - **Core Configuration:** Centralized in `src/config.py`, generated safely from `.env.template` via `scripts/setup_project.py` (`/okc-setup`).
 
 ## Agent Rules

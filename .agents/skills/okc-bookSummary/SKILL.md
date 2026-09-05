@@ -52,63 +52,63 @@ VAULT_ROOT/dataScienceKnowledgeBase/<Category>/raw/books/
 Each chapter note must contain the following 7 structured sections:
 
 ```markdown
-# Chapter XX — <Título del Capítulo>
+# Chapter XX — <Chapter Title>
 
-> **<Autor> — <Título del Libro>**
+> **<Author> — <Book Title>**
 > Source: Book / Audio Ingestion · Date: YYYY
-> Part of: [[<Autor> — <Título del Libro>]]
+> Part of: [[<Author> — <Book Title>]]
 > Type: book-chapter
 > Processed: DD-MM-YYYY
 > Tags: #no-read-yet #book-summary #actionable-insights #mental-models
 
-### 1. Tesis Central & Insight en Una Frase
-*La gran epifanía del capítulo sintetizada con impacto inmediato.*
-Contexto narrativo de cómo este bloque se integra en la tesis global del autor.
+### 1. Central Thesis & One-Sentence Insight
+*The major epiphany of the chapter synthesized with immediate impact.*
+Narrative context of how this section integrates into the author's overarching thesis.
 
-### 2. Preguntas de Indagación
-1. ¿Pregunta crítica 1...?
-2. ¿Pregunta crítica 2...?
-3. ¿Pregunta crítica 3...?
-4. ¿Pregunta crítica 4...?
-5. ¿Pregunta crítica 5...?
+### 2. Inquiry Questions
+1. Critical question 1...?
+2. Critical question 2...?
+3. Critical question 3...?
+4. Critical question 4...?
+5. Critical question 5...?
 
-### 3. Desarrollo del Resumen Enriquecido (Profundidad Narrativa & Modelos Mentales)
-Párrafos articulados y densos (sin listas secas de viñetas) que explican causas, dinámicas y consecuencias:
-- **Insight 1: [Nombre del Modelo Mental / Mecanismo Clave]**
-  Desarrollo profundo de la lógica, datos empíricos y matices históricos.
-- **Insight 2: [Nombre del Modelo Mental / Mecanismo Clave]**
-  Explicación de la operativa y los factores determinantes.
-- **Insight 3: [Nombre del Modelo Mental / Mecanismo Clave]**
-  Implicaciones estratégicas y transformaciones en la industria.
+### 3. Enriched Summary Development (Narrative Depth & Mental Models)
+Dense and articulated paragraphs (avoid dry bullet lists) explaining root causes, dynamics, and consequences:
+- **Insight 1: [Name of Mental Model / Core Mechanism]**
+  In-depth explanation of logic, empirical evidence, and historical nuances.
+- **Insight 2: [Name of Mental Model / Core Mechanism]**
+  Operational mechanics and determining factors.
+- **Insight 3: [Name of Mental Model / Core Mechanism]**
+  Strategic implications and industry transformations.
 
-> [!example] Metáfora Visual / Analogía: <Título>
-> La analogía o historia emblemática del autor para fijar el concepto en la memoria.
+> [!example] Visual Metaphor / Analogy: <Title>
+> The author's signature analogy or illustrative story to anchor the concept in memory.
 
-> [!quote] Cita Clave & Caso Real: <Título>
-> Caso de estudio real con su lección fundamental.
+> [!quote] Key Quote & Real-World Case: <Title>
+> Real-world case study with its foundational lesson.
 
-> [!warning] Trampa Común & Sesgo a Evitar: <Título>
-> El error típico que se comete al interpretar o aplicar erróneamente este principio.
+> [!warning] Common Pitfall & Bias to Avoid: <Title>
+> The typical mistake or trap encountered when erroneously interpreting or applying this principle.
 
 ```mermaid
 flowchart TD
-    A[Disparador / Modelo Mental] --> B[Dinámica de Decisión]
-    B --> C[Resultado / Impacto Estratégico]
+    A[Trigger / Mental Model] --> B[Decision Dynamics]
+    B --> C[Outcome / Strategic Impact]
 ```
 
-### 4. Smart Commentary (Conexiones Cruzadas & Contexto Ampliado)
-Análisis de alto nivel que conecta la tesis del capítulo con otros autores, libros referentes (ej. *The Second Machine Age*, *Superintelligence*, *Homo Deus*, *Blitzscaling*, *Lean Startup*) o avances tecnológicos contemporáneos.
+### 4. Smart Commentary (Cross-Domain Connections & Extended Context)
+High-level analysis connecting the chapter's thesis to other authors, foundational books (e.g., *The Second Machine Age*, *Superintelligence*, *Homo Deus*, *Blitzscaling*, *Lean Startup*), or contemporary technological developments.
 
-### 5. Guía de Aplicación Práctica (El "Cómo")
-* **Paso a Paso Accionable:** 3 a 4 pasos específicos para implementar el concepto en el trabajo, proyectos o toma de decisiones.
-* **Reto Inmediato de 15 Minutos:** Ejercicio práctico para ejecutar hoy mismo.
-* **Pregunta de Autorreflexión:** Pregunta introspectiva para auditar tu propia situación.
+### 5. Practical Application Guide (The "How")
+* **Actionable Step-by-Step:** 3 to 4 specific steps to implement the concept at work, in engineering projects, or in decision-making.
+* **Immediate 15-Minute Challenge:** Practical hands-on exercise to execute today.
+* **Self-Reflection Prompt:** Introspective inquiry to audit your current workflow or architecture.
 
-### 6. Análisis Crítico & Límites del Modelo
-Evaluación honesta de sesgos del autor, excepciones donde la regla no aplica y contraargumentos del campo.
+### 6. Critical Analysis & Model Boundaries
+Honest evaluation of author biases, edge-case exceptions where the model fails, and counterarguments from the field.
 
-### 7. Takeaway Ejecutivo en Una Frase
-*La conclusión definitiva y accionable para recordar siempre.*
+### 7. Executive One-Sentence Takeaway
+*The definitive actionable conclusion to remember always.*
 ```
 
 ---
@@ -133,10 +133,10 @@ The Master Note serves as the central hub for the book at the root of `raw/books
 ```mermaid
 mindmap
   root((<Book Title>))
-    Parte 1: Fundamentos
+    Part 1: Foundations
       [[Chapter 00 — <Title>]]
       [[Chapter 01 — <Title>]]
-    Parte 2: Mecánica y Dinámicas
+    Part 2: Mechanics and Dynamics
       [[Chapter 02 — <Title>]]
 ```
 

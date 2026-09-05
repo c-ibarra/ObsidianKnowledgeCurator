@@ -46,6 +46,8 @@ without breaking its current structure.
 9. **`master-plan-builder`** → Dynamic auto-indexing and regeneration of Category Master Plans.
 10. **`wiki-compiler`** → Background technical concept synthesizer and cross-linking wiki compiler.
 11. **`knowledge-synthesis` / `knowledge-link`** → Structural note-to-note linking and semantic cluster mapping.
+12. **`okc-doctor` / `okc-diagnosticsAndSynchronization`** → Full diagnostics, integrity audit, and vault synchronization suite.
+13. **`okc-normalize`** → Automatic note auditing, deduplication, stub removal, and canonical header injection.
 
 ## VISUAL TOOLS (without skill)
 
@@ -110,6 +112,10 @@ The project has automation tools in the `scripts/` folder to completely streamli
 9. **`scripts/okc_doctor.py`**:
    - **Purpose**: Comprehensive health check, integrity audit, and full synchronization suite across all vault categories. Scans SQLite index, Master Plans, dead links, contradictions, ZWSP unicode hygiene, unreferenced assets in `assets/images/`, protected zones, and rebuilds Graphify + `KNOWLEDGE.md` index. Supports `--fix` for auto-repair.
    - **Execution**: `uv run python scripts/okc_doctor.py` (or `uv run python scripts/okc_doctor.py --fix`) or slash command `/okc-doctor` / `/okc-diagnosticsAndSynchronization`
+
+10. **`scripts/normalize_notes.py`**:
+    - **Purpose**: Note auditor, deduplicator, stub sanitizer, and canonical Obsidian header injector. Detects exact duplicates via content hashing, identifies empty stubs, safely moves duplicates/stubs to `_archive/`, and applies canonical blockquote headers.
+    - **Execution**: `uv run python scripts/normalize_notes.py --target "<folder>" [--fix] [--sync]` or slash command `/okc-normalize`
 
 ---
 

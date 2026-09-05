@@ -56,10 +56,10 @@ When the user starts a message with a slash command, you must immediately execut
     *   *Purpose:* Ingest a podcast episode or audio link, transcribe audio using Buzz CLI (Whisper), map Graphify context, curate note in `raw/`, compile concepts in `wiki/`, and sync the vault.
     *   *Execution:* Run `uv run python scripts/fetch_podcast_data.py --url "<url>"`. Once completed, read `temp/fetched_data.json` and `temp/fetched_data.txt`, generate the curated note in `raw/`, compile concepts in `wiki/`, and run `uv run python scripts/sync_vault.py`.
 *   **`/okc-urlTwitter <url>`**
-    *   *Purpose:* Ingest a Twitter/X post or video. It extracts post text and metadata, and if a video is present without subtitles, it automatically downloads the audio and transcribes it using Buzz CLI / Whisper. It curates the note in `raw/` (including `Processed/Procesado` date), compiles concepts in `wiki/`, and syncs the vault.
+    *   *Purpose:* Ingest a Twitter/X post or video. It extracts post text and metadata, and if a video is present without subtitles, it automatically downloads the audio and transcribes it using Buzz CLI / Whisper. It curates the note in `raw/` (including `Processed` date), compiles concepts in `wiki/`, and syncs the vault.
     *   *Execution:* Run `uv run python scripts/fetch_twitter_data.py --url "<url>"`. Once completed, read `temp/fetched_data.json` and `temp/fetched_data.txt`, generate the curated note in `raw/`, compile concepts in `wiki/`, and run `uv run python scripts/sync_vault.py`.
 *   **`/okc-urlYoutube <url>`**
-    *   *Purpose:* Ingest a YouTube video. It downloads subtitles or automatically falls back to local Buzz CLI Whisper transcription if subtitles are disabled. It curates the note in `raw/` (including `Processed/Procesado` date), compiles concepts in `wiki/`, and syncs the vault.
+    *   *Purpose:* Ingest a YouTube video. It downloads subtitles or automatically falls back to local Buzz CLI Whisper transcription if subtitles are disabled. It curates the note in `raw/` (including `Processed` date), compiles concepts in `wiki/`, and syncs the vault.
     *   *Execution:* Run `uv run python scripts/fetch_youtube_data.py --url "<url>"`. Once completed, read `temp/fetched_data.json` and `temp/fetched_data.txt`, generate the curated note in `raw/`, compile concepts in `wiki/`, and run `uv run python scripts/sync_vault.py`.
 
 

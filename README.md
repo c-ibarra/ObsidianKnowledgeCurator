@@ -116,6 +116,13 @@ A unified 7-stage health check, integrity audit, and synchronization suite:
 - **Protected Zones Immutability Audit**: Ensures zero unauthorized modifications across protected engineering zones.
 - **Graphify & `KNOWLEDGE.md` Rebuild**: Updates `graph.json`, `graph_cache.json`, and the concept index in one pass.
 
+### 8. Note Normalizer & Header Sanitizer (`scripts/normalize_notes.py`, `/okc-normalize`)
+An automated audit, deduplication, and header standardization engine (ADR 0006):
+- **Content Hash Deduplication**: Computes SHA-256 digests of markdown content to identify identical notes across folders, safely archiving duplicates into a local `_archive/` directory.
+- **Empty & Low-Value Stub Elimination**: Detects and isolates notes lacking substantial content or structure, preserving a high signal-to-noise ratio in the knowledge graph.
+- **Canonical Blockquote Injection**: Detects missing metadata headers and non-destructively prepends canonical Obsidian blockquote schema (`Author`, `Source`, `Type`, `Processed`, and `Tags: #no-read-yet`).
+- **Atomic Database & Master Plan Sync**: Includes `--sync` to automatically update the SQLite differential index and Category Master Plans in a single operation.
+
 ---
 
 ## 🏗 System Architecture
@@ -252,7 +259,7 @@ The vault is strictly divided into four zones to separate immutable sources from
 - Pre-calculates `"graphify_context"` via `GraphifyMapper`.
 
 ### 3. Non-Fiction Book Ingestion & Synthesis (`fetch_book_data.py` & `okc-bookSummary`)
-- **High-Density Actionable Synthesis (HDAS Standard)**: Produces rich, 7-section modular chapter notes combining dense narrative prose with active learning tools (Tesis Central & Insight en 1 Frase, Preguntas de Indagación, Desarrollo Enriquecido con Modelos Mentales, Callouts Visuales de Metáfora/Cita/Trampa Común, Smart Cross-Domain Commentary, Guía de Aplicación Práctica con retos de 15 minutos, y Takeaway Ejecutivo en 1 Frase).
+- **High-Density Actionable Synthesis (HDAS Standard)**: Produces rich, 7-section modular chapter notes combining dense narrative prose with active learning tools (Central Thesis & 1-Sentence Insight, Inquiry Questions, Enriched Summary Development with Mental Models, Visual Metaphor / Key Quote / Common Pitfall Callouts, Smart Cross-Domain Commentary, Practical Application Guide with 15-minute challenges, and Executive 1-Sentence Takeaway).
 - **Automated Structure Parsing**: Ingests PDF, EPUB, DOCX, and TXT files, segmenting chapters and sanitizing text.
 - **Default Obsidian Vault Output**: Writes main book summaries and individual chapter notes (`Chapter XX — <Title>.md`) directly to `VAULT_ROOT/dataScienceKnowledgeBase/<Category>/raw/books/`.
 - **Enforced Chapter Depth (1,600–2,650 words total)**: Requires dense explanatory narrative for Section 3 (Enriched Summary Development) to ensure thorough technical and conceptual depth.
@@ -274,6 +281,11 @@ The vault is strictly divided into four zones to separate immutable sources from
 ### 6. Full Diagnostics & Auto-Repair (`scripts/okc_doctor.py`, `/okc-doctor`)
 - Comprehensive 7-stage health check across the entire vault.
 - Runs SQLite index differential sync, multi-category Master Plan updates, dead wikilink & contradiction scans, invisible unicode (ZWSP) sanitation (`--fix`), visual assets inspection, and Graphify rebuild.
+
+### 7. Note Normalization & Deduplication (`scripts/normalize_notes.py`, `/okc-normalize`)
+- Recursively audits target vault folders for duplicate files, empty stubs, and missing canonical headers.
+- Runs in safe dry-run mode by default, or with `--fix` to archive duplicates/stubs into `_archive/` and inject canonical blockquotes.
+- Seamlessly integrates with `--sync` to trigger an atomic SQLite index rebuild and Master Plan update.
 
 ---
 

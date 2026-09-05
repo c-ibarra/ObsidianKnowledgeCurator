@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.14.0] - 2026-09-05
+
+### Added
+- **Note Normalizer & Stub Sanitizer Engine (`src/agent_tools/note_normalizer.py`, `scripts/normalize_notes.py`, `/okc-normalize`)**: Implemented automated audit, deduplication, stub removal, and canonical Obsidian blockquote header injection (ADR 0006). Supports `--dry-run`, safe archiving to local `_archive/` with `--fix`, and atomic SQLite index/Master Plan updates with `--sync`.
+- **`okc-normalize` Native Agent Skill (`.agents/skills/okc-normalize/SKILL.md`)**: Registered native skill and documentation in `AGENTS.md` and `README.md`.
+- **ADR 0006 (`docs/adr/0006-note-normalizer-and-sanitizer.md`)**: Documented the architectural decisions, design drivers, and consequences of content-hash deduplication and non-destructive archiving.
+- **Enhanced OKC Doctor & Vault Health Linters**: Integrated normalization checks, dead link detection refinements, and SQLite index synchronization into `scripts/okc_doctor.py`, `scripts/vault_db.py`, `scripts/vault_linter.py`, and `scripts/vault_health_linter.py`.
+- **Book Ingestion Service Refinements**: Refactored `src/agent_tools/book_ingestion/engine.py` with improved HDAS formatting and full test coverage in `tests/test_book_ingestion.py`.
+- **Comprehensive Test Coverage**: Added `tests/test_note_normalizer.py` and expanded `tests/test_okc_doctor.py` (35 unit tests passing).
+
 ## [2.13.0] - 2026-08-21
 
 ### Added
