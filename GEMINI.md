@@ -51,6 +51,7 @@ without breaking its current structure.
 12. **`okc-doctor` / `okc-diagnosticsAndSynchronization`** → Full diagnostics, integrity audit, and vault synchronization suite.
 13. **`okc-normalize`** → Automatic note auditing, deduplication, stub removal, and canonical header injection.
 14. **`okc-study`** → Managed study deck curation, SuperMemo-aligned formulation, and direct Anki synchronization.
+15. **`okc-bookFlashcards`** → High-Density Active Recall (HDAR) full-book flashcard generation, extraction, and Anki/Obsidian synchronization.
 
 ## VISUAL TOOLS (without skill)
 
@@ -123,6 +124,10 @@ The project has automation tools in the `scripts/` folder to completely streamli
 11. **`scripts/study_deck.py`**:
     - **Purpose**: Managed study deck and flashcard engine. Parses source notes via AST, extracts atomic Knowledge Units, generates SuperMemo-aligned cards (Basic/Cloze), renders managed Markdown decks in `<RootFolder>/study/<Deck Name>.md`, and syncs directly to Anki via MCP.
     - **Execution**: `uv run python scripts/study_deck.py create --source "<folder>" --deck "<name>" [--anki-deck "<anki_name>"]` or slash command `/okc-study`
+
+12. **`scripts/book_flashcards_engine.py`**:
+    - **Purpose**: High-Density Active Recall (HDAR) full-book ingestion and flashcard engine. Ingests whole EPUB/PDF books, extracts chapters and semantic sections, validates atomic cards against the 7-rule HDAR rubric, manages resilient chapter checkpoints, and syncs multi-format outputs to Obsidian and Anki.
+    - **Execution**: `uv run python scripts/book_flashcards_engine.py --input "<path_to_epub>" --deck "<name>" [--sync-anki] [--replace-deck]` or slash command `/okc-bookFlashcards`
 
 ---
 
