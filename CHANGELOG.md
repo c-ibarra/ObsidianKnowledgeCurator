@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.15.0] - 2026-09-06
+
+### Added
+- **High-Density Active Recall (HDAR) Book Flashcard Engine (`scripts/book_flashcards_engine.py`, `/okc-bookFlashcards`, `/okc-bookDeck`)**: Implemented whole-book flashcard generation engine adhering to the 7-rule HDAR standard (ADR 0008). Automatically decomposes EPUB and PDF non-fiction books into semantic chapters and sections, formulates atomic `Basic (optional reversed card)` notes, avoids duplicates, links extracted diagrams, and syncs directly to Anki and Obsidian.
+- **`okc-bookFlashcards` Native Agent Skill (`.agents/skills/okc-bookFlashcards/SKILL.md`)**: Registered native skill and slash command handler in `GEMINI.md` and `.agents/AGENTS.md`.
+- **ADR 0008 (`docs/adr/0008-hdar-book-flashcards-engine.md`)**: Documented the architectural decisions, design drivers, and multi-format convergence of the full-book flashcard extraction engine.
+- **Production AI Engineering Active Recall Deck**: Curated and synchronized 163 high-yield cards from Chip Huyen's *AI Engineering: Building Applications with Foundation Models* into Anki (`AI Engineer::Chip Huyen — AI Engineering`) and Obsidian study note.
+
 ## [2.14.0] - 2026-09-05
 
 ### Added

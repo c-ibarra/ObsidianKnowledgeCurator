@@ -134,6 +134,14 @@ An automated spaced repetition, active recall, and pedagogical flashcard synthes
 - **Deep Visual Architecture**: Clones diagram and figure assets by SHA-256 hash into `<VAULT_ROOT>/assets/images/study/`, generating dedicated architectural visual recall cards.
 - **Two-Phase Commit (2PC) Journal & Crash Recovery**: Logs write transactions (`PREPARED` -> `COMMITTED`), performs atomic staging swaps, and provides `study_deck.py recover` to prevent partial state corruption.
 
+### 10. High-Density Active Recall (HDAR) Book Flashcard Engine (`scripts/book_flashcards_engine.py`, `/okc-bookFlashcards`)
+An end-to-end active recall flashcard generation and synchronization engine for technical books (ADR 0008):
+- **HDAR 7-Rule Pedagogical Rubric**: Enforces zero-hallucination factual grounding, atomic information retrieval, causal mechanisms over superficial facts, and balanced bilingual technical terminology.
+- **Whole-Book Decomposition & Extraction**: Parses EPUB and PDF non-fiction books into structured semantic chapters, section hierarchies, and embedded visual media.
+- **Resilient Chapter Checkpointing**: Maintains incremental state in `checkpoint.json` to allow resume-on-failure across 10+ chapters without reprocessing or data loss.
+- **Automated Deduplication & Global Audit**: Evaluates candidate cards across chapters, eliminates semantic duplicates, and outputs comprehensive audit reports (`audit_report.md`).
+- **Multi-Platform Convergence**: Simultaneously generates 1-click Anki import files (`.tsv`), structured JSON databases, native Obsidian study notes (`<VAULT_ROOT>/.../study/<Deck Name>.md`), and executes direct AnkiConnect synchronization with embedded diagrams.
+
 
 ---
 
@@ -381,6 +389,29 @@ A multi-modal spaced repetition and active recall engine:
 - **`recover`**: Scans the Two-Phase Commit (`PREPARED` -> `COMMITTED`) journal to clean up or complete dangling transactions after system halts or unexpected crashes.
   ```bash
   uv run python scripts/study_deck.py recover [--clean-only]
+  ```
+
+### 9. High-Density Active Recall (HDAR) Book Flashcard Ingestion (`scripts/book_flashcards_engine.py`, `/okc-bookFlashcards`)
+A specialized engine for processing entire technical books into active recall decks:
+- **Full Book Ingestion**: Extracts chapters, sections, and figures directly from EPUB or PDF non-fiction books:
+  ```bash
+  uv run python scripts/book_flashcards_engine.py --input "<path_to_epub_or_pdf>" --deck "<DeckName>"
+  ```
+- **Direct Anki Sync & Overwrite Protection**:
+  ```bash
+  # Ingest and automatically push cards and media to Anki:
+  uv run python scripts/book_flashcards_engine.py --input "<path>" --deck "<DeckName>" --sync-anki
+
+  # Replace an existing deck cleanly:
+  uv run python scripts/book_flashcards_engine.py --input "<path>" --deck "<DeckName>" --sync-anki --replace-deck
+  ```
+- **Resumed Execution & Incremental Processing**:
+  ```bash
+  # Check current checkpoint status:
+  uv run python scripts/book_flashcards_engine.py --deck "<DeckName>" --status
+
+  # Re-compile multi-format outputs from existing checkpoint cards:
+  uv run python scripts/book_flashcards_engine.py --deck "<DeckName>" --compile
   ```
 
 ---
