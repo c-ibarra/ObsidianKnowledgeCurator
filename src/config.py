@@ -69,6 +69,7 @@ VAULT_ROOT: Path = resolve_vault_root()
 OBSIDIAN_VAULT_PATH: Path = VAULT_ROOT
 ASSETS_IMAGES_DIR: Path = VAULT_ROOT / "assets" / "images"
 GRAPHIFY_OUT_DIR: Path = PROJECT_ROOT / "graphify-out"
+STUDY_STATE_DIR: Path = PROJECT_ROOT / "study-state"
 TEMP_DIR: Path = PROJECT_ROOT / "temp"
 REPORT_DIR: Path = PROJECT_ROOT / "report"
 SKILLS_DIR: Path = PROJECT_ROOT / ".agents" / "skills"
@@ -137,6 +138,15 @@ def get_temp_dir() -> Path:
     """Returns and ensures existence of the project temporary directory."""
     TEMP_DIR.mkdir(parents=True, exist_ok=True)
     return TEMP_DIR
+
+
+def get_study_state_dir(vault_id: Optional[str] = None) -> Path:
+    """Returns and ensures existence of the durable study-state directory,
+    optionally scoped to a specific vault_id.
+    """
+    target = (STUDY_STATE_DIR / vault_id) if vault_id else STUDY_STATE_DIR
+    target.mkdir(parents=True, exist_ok=True)
+    return target
 
 
 def discover_vault_categories(vault_path: Optional[Path] = None) -> list[str]:

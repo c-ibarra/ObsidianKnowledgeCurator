@@ -1,14 +1,16 @@
-# Obsidian Knowledge Curator — Antigravity 2.0
+# Obsidian Knowledge Curator — Antigravity 2.4.0
 
 <p align="center">
   <img src="assets/images/curator_project_banner.png" alt="Curator Project Banner" width="100%">
 </p>
 
-![Python](https://img.shields.io/badge/Python-3.11+-blue.svg)
+![Python](https://img.shields.io/badge/Python-3.12+-blue.svg)
 ![Gemini 3.1 Pro](https://img.shields.io/badge/AI-Gemini_3.1_Pro-orange.svg)
 ![Obsidian](https://img.shields.io/badge/Knowledge-Obsidian-purple.svg)
+![Anki](https://img.shields.io/badge/Spaced_Repetition-Anki_MCP-blue.svg)
 ![Antigravity](https://img.shields.io/badge/Agent-Antigravity_SDK-black.svg)
 ![Graphify](https://img.shields.io/badge/Knowledge_Graph-Graphify-green.svg)
+
 
 An autonomous, agentic knowledge compiler designed to maintain and synthesize a "Second Brain" within an Obsidian Vault. Built natively with the **Google Antigravity SDK** and **Gemini 3.1 Pro**, this system automates the ingestion of technical articles, YouTube videos, and research papers, filtering content via an automated **Technical Density Grader**, indexing structural relationships via **Graphify.net**, and maintaining a decoupled skill-data architecture.
 
@@ -123,6 +125,16 @@ An automated audit, deduplication, and header standardization engine (ADR 0006):
 - **Canonical Blockquote Injection**: Detects missing metadata headers and non-destructively prepends canonical Obsidian blockquote schema (`Author`, `Source`, `Type`, `Processed`, and `Tags: #no-read-yet`).
 - **Atomic Database & Master Plan Sync**: Includes `--sync` to automatically update the SQLite differential index and Category Master Plans in a single operation.
 
+### 9. Managed Study Decks & Anki MCP Synchronization Engine (`scripts/study_deck.py`, `/okc-study`)
+An automated spaced repetition, active recall, and pedagogical flashcard synthesis engine (ADR 0007):
+- **SuperMemo 20-Rules Compliance**: Generates atomic `Basic` (Q/A) and `Cloze` (`{{c1::...}}`) flashcards grounded in verifiable `SourceSpan` evidence slices.
+- **AST Parsing & Math/Table Fidelity**: Uses `markdown-it-py` to parse source notes while maintaining LaTeX formulas (`$...$`, `$$...$$`), fenced code blocks, and markdown tables.
+- **Direct Anki MCP & AnkiConnect Push**: Automatically creates decks, uploads media assets, and synchronizes cards via the Anki MCP server or local AnkiConnect HTTP API (`http://127.0.0.1:8765`).
+- **Three-Way Merge with Human Preservation**: Retains user modifications to card fronts and backs in Markdown while updating source notes; records deleted cards in `study_suppressions` to prevent resurrection.
+- **Deep Visual Architecture**: Clones diagram and figure assets by SHA-256 hash into `<VAULT_ROOT>/assets/images/study/`, generating dedicated architectural visual recall cards.
+- **Two-Phase Commit (2PC) Journal & Crash Recovery**: Logs write transactions (`PREPARED` -> `COMMITTED`), performs atomic staging swaps, and provides `study_deck.py recover` to prevent partial state corruption.
+
+
 ---
 
 ## 🏗 System Architecture
@@ -229,6 +241,67 @@ Build the initial structural graph across your vault and compile the `KNOWLEDGE.
 uv run python scripts/sync_vault.py --target-kb all
 ```
 
+#### Step 5: Configure Anki Client & Anki MCP Server
+
+To enable bi-directional spaced repetition flashcard generation and automatic synchronization (`/okc-study`):
+
+1. **Install and Open Anki**:
+   - Download and install [Anki](https://apps.ankiweb.net/).
+   - Ensure Anki is running in the background during synchronization.
+
+2. **Install the AnkiConnect Add-on**:
+   - In Anki, navigate to: `Tools` ➔ `Add-ons` ➔ `Get Add-ons...`
+   - Enter the AnkiConnect code: **`2055492159`** and click OK.
+   - Restart Anki.
+
+3. **Configure AnkiConnect CORS / Allowed Origins**:
+   - Go to `Tools` ➔ `Add-ons`, select **AnkiConnect**, and click **Config**.
+   - Ensure `webCorsOriginList` includes local loopbacks and `apiKey` is empty (default) or matches your configuration:
+     ```json
+     {
+         "apiKey": null,
+         "apiHost": "127.0.0.1",
+         "apiPort": 8765,
+         "webCorsOriginList": [
+             "http://localhost",
+             "http://127.0.0.1",
+             "*"
+         ]
+     }
+     ```
+   - Restart Anki. Test connection by running `curl http://127.0.0.1:8765` (should return `"AnkiConnect"`).
+
+4. **Configuring / Updating the Anki MCP Server in Antigravity / Claude Code**:
+   - The Anki MCP server is registered in your agent client configuration (`mcp_config.json` or Antigravity's settings).
+   - If using `npx` or standard node MCP runner:
+     ```json
+     {
+       "mcpServers": {
+         "anki": {
+           "command": "npx",
+           "args": ["-y", "@modelcontextprotocol/server-anki"],
+           "env": {
+             "ANKI_CONNECT_URL": "http://127.0.0.1:8765"
+           }
+         }
+       }
+     }
+     ```
+   - If using python-based `anki-connect-mcp`:
+     ```json
+     {
+       "mcpServers": {
+         "anki": {
+           "command": "uvx",
+           "args": ["anki-connect-mcp"]
+         }
+       }
+     }
+     ```
+   - To update the Anki MCP server, force cache refresh via `npx -y @modelcontextprotocol/server-anki@latest` or `uvx --upgrade anki-connect-mcp`.
+   - *Note*: Even if the MCP server is idle or offline, `scripts/study_deck.py` automatically falls back to native direct HTTP calls against `http://127.0.0.1:8765` to guarantee reliable synchronization without interruptions.
+
+
 ---
 
 ## 🗂 The "Zone" Knowledge Architecture
@@ -287,7 +360,31 @@ The vault is strictly divided into four zones to separate immutable sources from
 - Runs in safe dry-run mode by default, or with `--fix` to archive duplicates/stubs into `_archive/` and inject canonical blockquotes.
 - Seamlessly integrates with `--sync` to trigger an atomic SQLite index rebuild and Master Plan update.
 
+### 8. Study Decks, Flashcard Synthesis & Anki MCP Pipeline (`scripts/study_deck.py`, `/okc-study`)
+A multi-modal spaced repetition and active recall engine:
+- **`create`**: Ingests notes, parses AST structures (`markdown-it-py`), extracts atomic `KnowledgeUnits`, applies SuperMemo 20-rules validation, writes `<RootFolder>/study/<Deck Name>.md`, and syncs directly to Anki via MCP.
+  ```bash
+  uv run python scripts/study_deck.py create --source "<folder_or_note>" --deck "<DeckName>" [--anki-deck "<AnkiName>"]
+  ```
+- **`add`**: Dynamically binds new notes or source folders to an existing deck without duplicate card creation.
+  ```bash
+  uv run python scripts/study_deck.py add --source "<new_source>" --deck "<DeckName>"
+  ```
+- **`update`**: Runs a **Three-Way Merge** across Markdown edits, SQLite persistence, and Anki. Automatically preserves human card modifications, suppresses user-deleted cards from reappearing, and pushes edits to Anki via `updateNoteFields` without resetting SRS review intervals.
+  ```bash
+  uv run python scripts/study_deck.py update --deck "<DeckName>"
+  ```
+- **`sync-anki`**: Pushes pending or unsynced flashcards and frozen image media to Anki.
+  ```bash
+  uv run python scripts/study_deck.py sync-anki --deck "<DeckName>"
+  ```
+- **`recover`**: Scans the Two-Phase Commit (`PREPARED` -> `COMMITTED`) journal to clean up or complete dangling transactions after system halts or unexpected crashes.
+  ```bash
+  uv run python scripts/study_deck.py recover [--clean-only]
+  ```
+
 ---
+
 
 ## 🛠 Technology Stack
 
@@ -299,8 +396,11 @@ The vault is strictly divided into four zones to separate immutable sources from
 | **Backend & Scripting**| Python 3.12+, `uv` | High-speed, deterministic local execution environment. |
 | **Media & Scraping** | Chrome CDP, `yt-dlp`, `Buzz CLI` (Whisper), `BeautifulSoup4` | Dynamic CSR web scraping, audio extraction, and local speech-to-text. |
 | **Knowledge Base** | Obsidian | Markdown-based local filesystem database. |
+| **Spaced Repetition** | Anki, AnkiConnect, Anki MCP | Active recall flashcards, media upload, and SRS scheduling. |
+| **AST Parsing** | `markdown-it-py` | Strict markdown tokenization and structure extraction. |
 
 ---
+
 
 ## 🚀 Future Improvements & Lessons Learned
 

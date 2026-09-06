@@ -35,6 +35,7 @@ temp/*
 !temp/.gitkeep
 report/
 graphify-out/
+study-state/
 
 
 # Added during private GitHub sync

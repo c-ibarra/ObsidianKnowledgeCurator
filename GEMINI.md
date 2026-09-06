@@ -1,4 +1,5 @@
-# Obsidian Knowledge Curator — Antigravity 2.0
+# Obsidian Knowledge Curator — Antigravity 2.4.0
+
 
 > **Recommended Model**: **Gemini 3.1 Pro** (due to its massive context window and high fidelity in Tool Calling)
 
@@ -20,6 +21,7 @@ without breaking its current structure.
 | Connector | When to use it |
 |----------|--------------|
 | **Obsidian CLI** `/obsidian-cli` | ALWAYS — read skill instructions before operating |
+| **Anki MCP** | Bi-directional study deck creation and flashcard synchronization |
 | **youTubeTranscript MCP** | Transcript of a single YouTube video |
 | **youTubePlayListTranscript MCP** | Transcripts of an entire YouTube playlist |
 | **AnyDoc Parser** (`firecrawl-anydoc`) | Extraction for Office docs (.docx, .pptx, .xlsx, .epub, .pdf, .csv, .odt, .rtf) |
@@ -48,6 +50,7 @@ without breaking its current structure.
 11. **`knowledge-synthesis` / `knowledge-link`** → Structural note-to-note linking and semantic cluster mapping.
 12. **`okc-doctor` / `okc-diagnosticsAndSynchronization`** → Full diagnostics, integrity audit, and vault synchronization suite.
 13. **`okc-normalize`** → Automatic note auditing, deduplication, stub removal, and canonical header injection.
+14. **`okc-study`** → Managed study deck curation, SuperMemo-aligned formulation, and direct Anki synchronization.
 
 ## VISUAL TOOLS (without skill)
 
@@ -116,6 +119,10 @@ The project has automation tools in the `scripts/` folder to completely streamli
 10. **`scripts/normalize_notes.py`**:
     - **Purpose**: Note auditor, deduplicator, stub sanitizer, and canonical Obsidian header injector. Detects exact duplicates via content hashing, identifies empty stubs, safely moves duplicates/stubs to `_archive/`, and applies canonical blockquote headers.
     - **Execution**: `uv run python scripts/normalize_notes.py --target "<folder>" [--fix] [--sync]` or slash command `/okc-normalize`
+
+11. **`scripts/study_deck.py`**:
+    - **Purpose**: Managed study deck and flashcard engine. Parses source notes via AST, extracts atomic Knowledge Units, generates SuperMemo-aligned cards (Basic/Cloze), renders managed Markdown decks in `<RootFolder>/study/<Deck Name>.md`, and syncs directly to Anki via MCP.
+    - **Execution**: `uv run python scripts/study_deck.py create --source "<folder>" --deck "<name>" [--anki-deck "<anki_name>"]` or slash command `/okc-study`
 
 ---
 

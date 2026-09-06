@@ -40,6 +40,9 @@ When the user starts a message with a slash command, you must immediately execut
 *   **`/okc-setup`**
     *   *Purpose:* Configure project environment variables, Obsidian Vault path, LLM providers, and system dependencies from `.env.template`.
     *   *Execution:* Run `uv run python scripts/setup_project.py --non-interactive --sync` (or pass `--vault-path <path>`).
+*   **`/okc-study <action> [flags]`**
+    *   *Purpose:* Managed study deck and flashcard engine. Parses notes via AST, extracts atomic Knowledge Units, generates SuperMemo-aligned cards (Basic/Cloze), creates managed Markdown decks in `<RootFolder>/study/<Deck Name>.md`, and syncs directly to Anki via MCP / AnkiConnect.
+    *   *Execution:* Run `uv run python scripts/study_deck.py create --source "<folder_or_note>" --deck "<DeckName>" [--anki-deck "<AnkiName>"]` (or `status` / `sync-anki`).
 *   **`/okc-sync`**
     *   *Purpose:* Rebuild master plans and run vault linter.
     *   *Execution:* `uv run python scripts/sync_vault.py`
